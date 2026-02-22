@@ -105,7 +105,7 @@ version = "0.1.0"
 description = "Scientific paper verification plugin for truthfulness-evaluator"
 requires-python = ">=3.11"
 dependencies = [
-    "truthfulness-evaluator>=0.2.0",
+    "truthfulness-evaluator>=0.1.0",
 ]
 
 [project.entry-points."truthfulness_evaluator.workflows"]
@@ -183,7 +183,7 @@ Plugins are ideal for domain-specific workflows:
     Use factory functions (not module-level instances) for entry points. This allows users to load the registry without instantiating expensive resources.
 
 !!! warning "Dependencies"
-    Declare `truthfulness-evaluator` as a dependency with version constraints. Use `>=0.2.0` to ensure plugin API stability.
+    Declare `truthfulness-evaluator` as a dependency with version constraints. Use `>=0.1.0` to ensure plugin API stability.
 
 !!! note "Testing Plugins"
     Test your plugin by installing it in editable mode:

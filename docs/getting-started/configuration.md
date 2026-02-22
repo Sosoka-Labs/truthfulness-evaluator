@@ -7,7 +7,7 @@ All config via `TRUTH_*` prefix:
 ```bash
 # Models
 TRUTH_EXTRACTION_MODEL=gpt-4o-mini
-TRUTH_VERIFICATION_MODELS=["gpt-4o","gpt-4o-mini"]
+TRUTH_VERIFICATION_MODELS=["gpt-4o","claude-sonnet-4-5"]
 
 # Thresholds
 TRUTH_CONFIDENCE_THRESHOLD=0.7
@@ -47,7 +47,7 @@ from truthfulness_evaluator.core.config import EvaluatorConfig
 config = EvaluatorConfig(
     # Models
     extraction_model="gpt-4o-mini",
-    verification_models=["gpt-4o", "gpt-4o-mini"],
+    verification_models=["gpt-4o", "claude-sonnet-4-5"],
     
     # Consensus
     consensus_method="weighted",  # or "ice"
