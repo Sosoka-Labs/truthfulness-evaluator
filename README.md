@@ -103,23 +103,34 @@ Summary: 3 supported, 1 refuted, 1 needs review
 
 ## How It Works
 
-The evaluation pipeline is a LangGraph state machine with four main stages:
+```mermaid
+graph TD
+    A[Document] --> B[Claim Extraction]
+    B --> C{Claims Found?}
+    C -->|No| D[Empty Report]
+    C -->|Yes| E[Web Search]
+    C -->|Yes| F[Filesystem Search]
+    E --> G[Evidence Pool]
+    F --> G
+    G --> H[Model 1 Vote]
+    G --> I[Model 2 Vote]
+    G --> J[Model N Vote]
+    H --> K[Consensus]
+    I --> K
+    J --> K
+    K --> L{More Claims?}
+    L -->|Yes| E
+    L -->|No| M[Report Generation]
+    M --> N[Grade + Details]
+```
 
 1. **Claim Extraction** - LLM parses the document and extracts verifiable factual statements as structured Pydantic models, skipping opinions and predictions.
 
-2. **Evidence Gathering** - For each claim, the system searches multiple sources in parallel:
-   - Web search via DuckDuckGo for external facts
-   - Filesystem React agent for code-specific claims (reads files, parses AST, follows imports)
+2. **Evidence Gathering** - For each claim, the system searches multiple sources in parallel: web search via DuckDuckGo for external facts, and a filesystem React agent for code-specific claims (reads files, parses AST, follows imports).
 
 3. **Multi-Model Verification** - Each claim is sent to multiple AI models independently. Models analyze evidence and return structured verdicts (SUPPORTS, REFUTES, or NOT_ENOUGH_INFO) with confidence scores.
 
-4. **Consensus and Grading** - Model votes are aggregated through weighted consensus. Unanimous votes produce high-confidence results. Disagreements trigger conservative fallbacks. Final report includes letter grade (A+ to F), evidence citations, and detailed explanations.
-
-```
-Document → Extract Claims → Gather Evidence → Verify (Multi-Model) → Generate Report
-                              ↓                         ↓
-                         Web + Filesystem         Weighted Consensus
-```
+4. **Consensus and Grading** - Model votes are aggregated through weighted consensus. Final report includes letter grade (A+ to F), evidence citations, and detailed explanations.
 
 ## Use Cases
 
