@@ -1,8 +1,5 @@
 """Tests for truthfulness_evaluator.config module."""
 
-import os
-import pytest
-
 from truthfulness_evaluator.core.config import EvaluatorConfig, get_config
 
 

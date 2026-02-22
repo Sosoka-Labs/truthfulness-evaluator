@@ -16,10 +16,7 @@ def is_verified(
     Returns:
         True if verdict is SUPPORTS/REFUTES and confidence meets threshold.
     """
-    return (
-        result.verdict in ("SUPPORTS", "REFUTES")
-        and result.confidence >= confidence_threshold
-    )
+    return result.verdict in ("SUPPORTS", "REFUTES") and result.confidence >= confidence_threshold
 
 
 def calculate_grade(
@@ -170,8 +167,7 @@ def build_report(
     stats = calculate_statistics(claims, verifications)
     computed_grade = grade or calculate_grade(verifications, confidence_threshold)
     overall_confidence = (
-        sum(v.confidence for v in verifications) / len(verifications)
-        if verifications else 0.0
+        sum(v.confidence for v in verifications) / len(verifications) if verifications else 0.0
     )
     computed_summary = summary or generate_summary(computed_grade, stats)
 

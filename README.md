@@ -4,9 +4,9 @@ Multi-model truthfulness evaluation with filesystem-aware evidence gathering.
 
 ---
 
+[![CI](https://github.com/Sosoka-Labs/truthfulness-evaluator/actions/workflows/ci.yml/badge.svg)](https://github.com/Sosoka-Labs/truthfulness-evaluator/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-174%20passing-green.svg)](./tests)
 
 ---
 
@@ -131,7 +131,7 @@ Document → Extract Claims → Gather Evidence → Verify (Multi-Model) → Gen
 
 ## Documentation
 
-Full documentation available at: [https://truthfulness-evaluator.readthedocs.io](https://truthfulness-evaluator.readthedocs.io) (placeholder - update when hosted)
+Full documentation: [https://sosoka-labs.github.io/truthfulness-evaluator/](https://sosoka-labs.github.io/truthfulness-evaluator/)
 
 - [Installation Guide](./docs/getting-started/installation.md)
 - [Quick Start Tutorial](./docs/getting-started/quickstart.md)
@@ -145,7 +145,7 @@ Full documentation available at: [https://truthfulness-evaluator.readthedocs.io]
 ### Setup
 
 ```bash
-git clone https://github.com/johnsosoka/truthfulness-evaluator.git
+git clone https://github.com/Sosoka-Labs/truthfulness-evaluator.git
 cd truthfulness-evaluator
 poetry install
 ```
@@ -178,7 +178,7 @@ MIT License. See [LICENSE](./LICENSE) for details.
 
 ## Contributing
 
-Contributions welcome. Please open an issue to discuss proposed changes before submitting a PR.
+Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup and guidelines.
 
 ## Author
 
@@ -186,3 +186,4 @@ Contributions welcome. Please open an issue to discuss proposed changes before s
 
 - GitHub: [@johnsosoka](https://github.com/johnsosoka)
 - Website: [johnsosoka.com](https://johnsosoka.com)
+- Organization: [Sosoka-Labs](https://github.com/Sosoka-Labs)

@@ -8,7 +8,7 @@
 ### SimpleClaimExtractionChain
 
 ```python
-from truthfulness_evaluator.chains.extraction import SimpleClaimExtractionChain
+from truthfulness_evaluator.llm.chains.extraction import SimpleClaimExtractionChain
 
 extractor = SimpleClaimExtractionChain(model="gpt-4o-mini")
 claims = await extractor.extract(
@@ -33,7 +33,7 @@ class ExtractedClaim(BaseModel):
 ### TripletExtractionChain
 
 ```python
-from truthfulness_evaluator.chains.extraction import TripletExtractionChain
+from truthfulness_evaluator.llm.chains.extraction import TripletExtractionChain
 
 extractor = TripletExtractionChain(model="gpt-4o-mini")
 claims = await extractor.extract(document, source_path)
@@ -46,7 +46,7 @@ Extracts subject-relation-object triplets.
 ### VerificationChain
 
 ```python
-from truthfulness_evaluator.chains.verification import VerificationChain
+from truthfulness_evaluator.llm.chains.verification import VerificationChain
 
 verifier = VerificationChain(model_name="gpt-4o")
 result = await verifier.verify(claim, evidence)
@@ -68,7 +68,7 @@ class VerificationOutput(BaseModel):
 ### ConsensusChain
 
 ```python
-from truthfulness_evaluator.chains.consensus import ConsensusChain
+from truthfulness_evaluator.llm.chains.consensus import ConsensusChain
 
 consensus = ConsensusChain(
     model_names=["gpt-4o", "gpt-4o-mini"],
@@ -84,7 +84,7 @@ Weighted voting. Models vote, weights applied, majority wins.
 ### ICEConsensusChain
 
 ```python
-from truthfulness_evaluator.chains.consensus import ICEConsensusChain
+from truthfulness_evaluator.llm.chains.consensus import ICEConsensusChain
 
 ice = ICEConsensusChain(
     model_names=["gpt-4o", "gpt-4o-mini"],
@@ -101,7 +101,7 @@ Iterative Consensus Ensemble. Models critique each other over multiple rounds.
 ### EvidenceProcessor
 
 ```python
-from truthfulness_evaluator.chains.evidence import EvidenceProcessor
+from truthfulness_evaluator.llm.chains.evidence import EvidenceProcessor
 
 processor = EvidenceProcessor(model="gpt-4o-mini")
 
@@ -154,38 +154,38 @@ result = await chain.ainvoke({"claim": "Python was created in 1991"})
 
 ### Claim Extraction
 
-::: truthfulness_evaluator.chains.extraction.SimpleClaimExtractionChain
+::: truthfulness_evaluator.llm.chains.extraction.SimpleClaimExtractionChain
     options:
       show_root_heading: true
       show_source: true
 
-::: truthfulness_evaluator.chains.extraction.TripletExtractionChain
+::: truthfulness_evaluator.llm.chains.extraction.TripletExtractionChain
     options:
       show_root_heading: true
       show_source: true
 
 ### Verification
 
-::: truthfulness_evaluator.chains.verification.VerificationChain
+::: truthfulness_evaluator.llm.chains.verification.VerificationChain
     options:
       show_root_heading: true
       show_source: true
 
 ### Consensus
 
-::: truthfulness_evaluator.chains.consensus.ConsensusChain
+::: truthfulness_evaluator.llm.chains.consensus.ConsensusChain
     options:
       show_root_heading: true
       show_source: true
 
-::: truthfulness_evaluator.chains.consensus.ICEConsensusChain
+::: truthfulness_evaluator.llm.chains.consensus.ICEConsensusChain
     options:
       show_root_heading: true
       show_source: true
 
 ### Evidence Processing
 
-::: truthfulness_evaluator.chains.evidence.EvidenceProcessor
+::: truthfulness_evaluator.llm.chains.evidence.EvidenceProcessor
     options:
       show_root_heading: true
       show_source: true

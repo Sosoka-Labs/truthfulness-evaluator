@@ -24,7 +24,7 @@ def load_document(path: str) -> str:
     if not file_path.exists():
         raise typer.BadParameter(f"File not found: {path}")
 
-    return file_path.read_text(encoding='utf-8')
+    return file_path.read_text(encoding="utf-8")
 
 
 def display_report(report):
@@ -35,7 +35,7 @@ def display_report(report):
         f"[bold]Confidence:[/bold] {report.overall_confidence:.1%}\n"
         f"[bold]Summary:[/bold] {report.summary}",
         title="Evaluation Summary",
-        box=box.ROUNDED
+        box=box.ROUNDED,
     )
     console.print(summary)
 
@@ -51,7 +51,9 @@ def display_report(report):
         table.add_row("Total Claims", str(total), "100%")
         table.add_row("Supported", str(stats.supported), f"{stats.supported/total:.1%}")
         table.add_row("Refuted", str(stats.refuted), f"{stats.refuted/total:.1%}")
-        table.add_row("Not Enough Info", str(stats.not_enough_info), f"{stats.not_enough_info/total:.1%}")
+        table.add_row(
+            "Not Enough Info", str(stats.not_enough_info), f"{stats.not_enough_info/total:.1%}"
+        )
         table.add_row("Verification Rate", "", f"{stats.verification_rate:.1%}")
 
     console.print(table)
@@ -67,7 +69,7 @@ def display_report(report):
         "SUPPORTS": "green",
         "REFUTES": "red",
         "NOT_ENOUGH_INFO": "yellow",
-        "UNVERIFIABLE": "dim"
+        "UNVERIFIABLE": "dim",
     }
 
     for i, verification in enumerate(report.verifications, 1):
@@ -78,7 +80,7 @@ def display_report(report):
                 str(i),
                 claim.text[:50] + "..." if len(claim.text) > 50 else claim.text,
                 f"[{color}]{verification.verdict}[/{color}]",
-                f"{verification.confidence:.0%}"
+                f"{verification.confidence:.0%}",
             )
 
     console.print(claims_table)
@@ -87,12 +89,18 @@ def display_report(report):
 @app.command()
 def evaluate(
     document: str = typer.Argument(..., help="Path to document to evaluate"),
-    root_path: str = typer.Option(None, "--root-path", "-r", help="Root path for filesystem evidence"),
+    root_path: str = typer.Option(
+        None, "--root-path", "-r", help="Root path for filesystem evidence"
+    ),
     output: str = typer.Option(None, "--output", "-o", help="Output file for report"),
     web_search: bool = typer.Option(True, help="Enable web search"),
-    models: list[str] = typer.Option(None, "--model", "-m", help="Models for verification (repeatable)"),
+    models: list[str] = typer.Option(
+        None, "--model", "-m", help="Models for verification (repeatable)"
+    ),
     confidence: float = typer.Option(0.7, "--confidence", "-c", help="Confidence threshold"),
-    human_review: bool = typer.Option(False, "--human-review", help="Enable human-in-the-loop review"),
+    human_review: bool = typer.Option(
+        False, "--human-review", help="Enable human-in-the-loop review"
+    ),
     mode: str = typer.Option("external", "--mode", help="Verification mode: external or internal"),
 ):
     """Evaluate truthfulness of claims in a document."""
@@ -104,7 +112,7 @@ def evaluate(
             console.print(f"[green]✓[/green] Loaded document: {document}")
         except Exception as e:
             console.print(f"[red]✗[/red] Error loading document: {e}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
         # Create config
         effective_models = list(models) if models else ["gpt-4o"]
@@ -113,7 +121,7 @@ def evaluate(
             enable_web_search=web_search and mode in ["external", "both"],
             enable_filesystem_search=root_path is not None,
             confidence_threshold=confidence,
-            enable_human_review=human_review
+            enable_human_review=human_review,
         )
 
         # Create appropriate graph based on mode
@@ -137,7 +145,7 @@ def evaluate(
                     "verifications": [],
                     "evidence_cache": {},
                     "config": config.model_dump(),
-                    "final_report": None
+                    "final_report": None,
                 }
             else:
                 state = {
@@ -151,13 +159,10 @@ def evaluate(
                     "config": config.model_dump(),
                     "final_report": None,
                     "verification_mode": mode,
-                    "classifications": {}
+                    "classifications": {},
                 }
 
-            result = await graph.ainvoke(
-                state,
-                config={"configurable": {"thread_id": "eval_001"}}
-            )
+            result = await graph.ainvoke(state, config={"configurable": {"thread_id": "eval_001"}})
 
             report = result["final_report"]
 
@@ -174,7 +179,7 @@ def evaluate(
 
         except Exception as e:
             console.print(f"[red]✗[/red] Evaluation failed: {e}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
     asyncio.run(run())
 
@@ -183,6 +188,7 @@ def evaluate(
 def version():
     """Show version information."""
     from . import __version__
+
     console.print(f"Truthfulness Evaluator v{__version__}")
 
 

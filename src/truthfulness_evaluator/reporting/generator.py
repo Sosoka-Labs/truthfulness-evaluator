@@ -123,19 +123,14 @@ class ReportGenerator:
         lines.append("")
 
         for verification in self.report.verifications:
-            claim = next(
-                (c for c in self.report.claims if c.id == verification.claim_id),
-                None
-            )
+            claim = next((c for c in self.report.claims if c.id == verification.claim_id), None)
             if not claim:
                 continue
 
             # Claim header with verdict emoji
-            emoji = {
-                "SUPPORTS": "✅",
-                "REFUTES": "❌",
-                "NOT_ENOUGH_INFO": "⚠️"
-            }.get(verification.verdict, "❓")
+            emoji = {"SUPPORTS": "✅", "REFUTES": "❌", "NOT_ENOUGH_INFO": "⚠️"}.get(
+                verification.verdict, "❓"
+            )
 
             lines.append(f"### {emoji} {claim.text}")
             lines.append("")
@@ -218,7 +213,7 @@ class ReportGenerator:
             content = self.to_markdown()
 
         # Write file
-        output_path.write_text(content, encoding='utf-8')
+        output_path.write_text(content, encoding="utf-8")
 
 
 def generate_report(report: TruthfulnessReport, format: str = "markdown") -> str:

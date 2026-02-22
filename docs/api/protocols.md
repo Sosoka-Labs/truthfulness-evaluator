@@ -13,7 +13,7 @@ These protocols enable pluggable strategies, allowing you to mix and match diffe
 
 ## ClaimExtractor
 
-::: truthfulness_evaluator.protocols.ClaimExtractor
+::: truthfulness_evaluator.core.protocols.ClaimExtractor
     options:
       show_root_heading: true
       show_source: true
@@ -24,7 +24,7 @@ These protocols enable pluggable strategies, allowing you to mix and match diffe
 
 ## EvidenceGatherer
 
-::: truthfulness_evaluator.protocols.EvidenceGatherer
+::: truthfulness_evaluator.core.protocols.EvidenceGatherer
     options:
       show_root_heading: true
       show_source: true
@@ -35,7 +35,7 @@ These protocols enable pluggable strategies, allowing you to mix and match diffe
 
 ## ClaimVerifier
 
-::: truthfulness_evaluator.protocols.ClaimVerifier
+::: truthfulness_evaluator.core.protocols.ClaimVerifier
     options:
       show_root_heading: true
       show_source: true
@@ -46,7 +46,7 @@ These protocols enable pluggable strategies, allowing you to mix and match diffe
 
 ## ReportFormatter
 
-::: truthfulness_evaluator.protocols.ReportFormatter
+::: truthfulness_evaluator.core.protocols.ReportFormatter
     options:
       show_root_heading: true
       show_source: true

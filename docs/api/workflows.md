@@ -6,7 +6,7 @@ The workflow layer orchestrates the pluggable pipeline by composing extractors, 
 
 ## WorkflowConfig
 
-::: truthfulness_evaluator.workflows.config.WorkflowConfig
+::: truthfulness_evaluator.llm.workflows.config.WorkflowConfig
     options:
       show_root_heading: true
       show_source: true
@@ -14,11 +14,11 @@ The workflow layer orchestrates the pluggable pipeline by composing extractors, 
 **Usage Example**:
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.extractors import SimpleExtractor
-from truthfulness_evaluator.gatherers import WebSearchGatherer
-from truthfulness_evaluator.verifiers import ConsensusVerifier
-from truthfulness_evaluator.formatters import MarkdownFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import SimpleExtractor
+from truthfulness_evaluator import WebSearchGatherer
+from truthfulness_evaluator import ConsensusVerifier
+from truthfulness_evaluator import MarkdownFormatter
 
 config = WorkflowConfig(
     extractor=SimpleExtractor(),
@@ -32,7 +32,7 @@ config = WorkflowConfig(
 
 ## WorkflowRegistry
 
-::: truthfulness_evaluator.workflows.registry.WorkflowRegistry
+::: truthfulness_evaluator.llm.workflows.registry.WorkflowRegistry
     options:
       show_root_heading: true
       show_source: true
@@ -40,7 +40,7 @@ config = WorkflowConfig(
 **Usage Example**:
 
 ```python
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
 
 registry = WorkflowRegistry()
 
@@ -56,7 +56,7 @@ print(workflows)  # ["external", "full", "quick", "internal"]
 
 ## WorkflowState
 
-::: truthfulness_evaluator.workflows.state.WorkflowState
+::: truthfulness_evaluator.llm.workflows.state.WorkflowState
     options:
       show_root_heading: true
       show_source: true
@@ -79,7 +79,7 @@ The `workflows.presets` module provides pre-configured workflows for common use 
 **Usage Example**:
 
 ```python
-from truthfulness_evaluator.workflows.presets import create_external_config
+from truthfulness_evaluator.llm.workflows.presets import create_external_config
 
 config = create_external_config()
 ```
@@ -87,7 +87,7 @@ config = create_external_config()
 For the internal preset, you must provide the codebase root path:
 
 ```python
-from truthfulness_evaluator.workflows.presets import create_internal_config
+from truthfulness_evaluator.llm.workflows.presets import create_internal_config
 
 config = create_internal_config(root_path="/path/to/project")
 ```

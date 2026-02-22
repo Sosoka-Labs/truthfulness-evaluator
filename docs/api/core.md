@@ -41,7 +41,7 @@ export TRUTH_MAX_WEB_RESULTS=10
 
 ## create_chat_model
 
-::: truthfulness_evaluator.core.llm.create_chat_model
+::: truthfulness_evaluator.llm.factory.create_chat_model
     options:
       show_root_heading: true
       show_source: true
@@ -49,7 +49,7 @@ export TRUTH_MAX_WEB_RESULTS=10
 **Usage Example**:
 
 ```python
-from truthfulness_evaluator.core.llm import create_chat_model
+from truthfulness_evaluator.llm.factory import create_chat_model
 
 # Use default config (from environment)
 llm = create_chat_model()

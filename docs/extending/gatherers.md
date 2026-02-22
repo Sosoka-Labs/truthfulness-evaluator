@@ -92,7 +92,7 @@ class APIGatherer:
 Use `CompositeGatherer` to run multiple evidence sources in parallel:
 
 ```python
-from truthfulness_evaluator.gatherers import (
+from truthfulness_evaluator import (
     WebSearchGatherer,
     FilesystemGatherer,
     CompositeGatherer,
@@ -115,10 +115,10 @@ The composite gatherer runs all sources concurrently and combines results, remov
 ## Registering with WorkflowConfig
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.extractors import SimpleExtractor
-from truthfulness_evaluator.verifiers import ConsensusVerifier
-from truthfulness_evaluator.formatters import MarkdownFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import SimpleExtractor
+from truthfulness_evaluator import ConsensusVerifier
+from truthfulness_evaluator import MarkdownFormatter
 
 config = WorkflowConfig(
     name="api-verification",

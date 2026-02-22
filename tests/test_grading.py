@@ -1,15 +1,14 @@
 """Tests for truthfulness_evaluator.core.grading module."""
 
 import pytest
-
-from truthfulness_evaluator.models import Claim, VerificationResult, TruthfulnessStatistics
 from truthfulness_evaluator.core.grading import (
+    build_report,
     calculate_grade,
     calculate_statistics,
     generate_summary,
-    build_report,
     is_verified,
 )
+from truthfulness_evaluator.models import Claim, TruthfulnessStatistics, VerificationResult
 
 
 class TestCalculateGrade:
@@ -20,25 +19,24 @@ class TestCalculateGrade:
         [
             (1.0, 0.95, "A+"),  # score = 0.95
             (1.0, 0.90, "A+"),  # score = 0.90
-            (1.0, 0.88, "A"),   # score = 0.88
-            (1.0, 0.85, "A"),   # score = 0.85
+            (1.0, 0.88, "A"),  # score = 0.88
+            (1.0, 0.85, "A"),  # score = 0.85
             (1.0, 0.82, "A-"),  # score = 0.82
             (1.0, 0.80, "A-"),  # score = 0.80
             (0.9, 0.85, "B+"),  # score = 0.765
-            (0.8, 0.9, "B"),    # score = 0.72
+            (0.8, 0.9, "B"),  # score = 0.72
             (0.75, 0.9, "C+"),  # score = 0.675
-            (0.7, 0.9, "C+"),   # score = 0.63
-            (0.6, 0.95, "C"),   # score = 0.57
-            (0.5, 1.0, "C-"),   # score = 0.50
-            (0.5, 0.85, "D"),   # score = 0.425
-            (0.3, 0.9, "F"),    # score = 0.27
+            (0.7, 0.9, "C+"),  # score = 0.63
+            (0.6, 0.95, "C"),  # score = 0.57
+            (0.5, 1.0, "C-"),  # score = 0.50
+            (0.5, 0.85, "D"),  # score = 0.425
+            (0.3, 0.9, "F"),  # score = 0.27
         ],
     )
     def test_calculate_grade_ranges(self, support_ratio, confidence, expected_grade):
         """Test grade calculation across different score ranges."""
         num_verified = 10
         num_supports = int(num_verified * support_ratio)
-        num_refutes = num_verified - num_supports
 
         verifications = []
         for i in range(num_supports):
@@ -157,19 +155,12 @@ class TestCalculateStatistics:
     def test_calculate_statistics_basic(self):
         """Test statistics calculation with various verdicts."""
         claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(5)
+            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt") for i in range(5)
         ]
         verifications = [
-            VerificationResult(
-                claim_id="c0", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.8, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"
-            ),
+            VerificationResult(claim_id="c0", verdict="SUPPORTS", confidence=0.9, explanation="ok"),
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.8, explanation="ok"),
+            VerificationResult(claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"),
             VerificationResult(
                 claim_id="c3", verdict="NOT_ENOUGH_INFO", confidence=0.5, explanation="ok"
             ),
@@ -203,8 +194,7 @@ class TestCalculateStatistics:
     def test_calculate_statistics_all_supported(self):
         """Test verification_rate and accuracy_score when all supported."""
         claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(3)
+            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt") for i in range(3)
         ]
         verifications = [
             VerificationResult(
@@ -220,8 +210,7 @@ class TestCalculateStatistics:
     def test_calculate_statistics_all_refuted(self):
         """Test accuracy_score when all refuted."""
         claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(3)
+            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt") for i in range(3)
         ]
         verifications = [
             VerificationResult(
@@ -313,9 +302,7 @@ class TestBuildReport:
         """Test building a basic report."""
         claims = [Claim(id="c1", text="Claim", source_document="test.txt")]
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            )
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok")
         ]
 
         report = build_report(
@@ -340,9 +327,7 @@ class TestBuildReport:
             Claim(id="c2", text="Claim 2", source_document="test.txt"),
         ]
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            )
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok")
         ]
 
         report = build_report(
@@ -357,9 +342,7 @@ class TestBuildReport:
     def test_build_report_override_grade(self):
         """Test that provided grade is not overwritten."""
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.95, explanation="ok"
-            )
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.95, explanation="ok")
         ]
 
         report = build_report(
@@ -374,9 +357,7 @@ class TestBuildReport:
     def test_build_report_override_summary(self):
         """Test that provided summary is not overwritten."""
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            )
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok")
         ]
 
         custom_summary = "Custom summary text"
@@ -404,9 +385,7 @@ class TestBuildReport:
     def test_build_report_custom_threshold(self):
         """Test building report with custom confidence threshold."""
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.65, explanation="ok"
-            )
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.65, explanation="ok")
         ]
 
         # With default 0.7, should be F

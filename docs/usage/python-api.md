@@ -5,7 +5,7 @@
 ```python
 import asyncio
 from truthfulness_evaluator import create_truthfulness_graph
-from truthfulness_evaluator.config import EvaluatorConfig
+from truthfulness_evaluator.core.config import EvaluatorConfig
 
 async def evaluate():
     # Configure
@@ -40,7 +40,7 @@ report = asyncio.run(evaluate())
 ### Claim Extraction
 
 ```python
-from truthfulness_evaluator.chains.extraction import SimpleClaimExtractionChain
+from truthfulness_evaluator.llm.chains.extraction import SimpleClaimExtractionChain
 
 extractor = SimpleClaimExtractionChain(model="gpt-4o-mini")
 claims = await extractor.extract(
@@ -55,7 +55,7 @@ for claim in claims:
 ### Verification
 
 ```python
-from truthfulness_evaluator.chains.verification import VerificationChain
+from truthfulness_evaluator.llm.chains.verification import VerificationChain
 from truthfulness_evaluator.models import Claim, Evidence
 
 verifier = VerificationChain(model_name="gpt-4o")
@@ -75,7 +75,7 @@ print(f"{result.verdict} ({result.confidence:.0%})")
 ### Consensus
 
 ```python
-from truthfulness_evaluator.chains.consensus import ConsensusChain
+from truthfulness_evaluator.llm.chains.consensus import ConsensusChain
 
 consensus = ConsensusChain(
     model_names=["gpt-4o", "gpt-4o-mini"],
@@ -89,7 +89,7 @@ print(result.model_votes)  # {'gpt-4o': 'SUPPORTS', 'gpt-4o-mini': 'SUPPORTS'}
 ### Evidence Processing
 
 ```python
-from truthfulness_evaluator.chains.evidence import EvidenceProcessor
+from truthfulness_evaluator.llm.chains.evidence import EvidenceProcessor
 
 processor = EvidenceProcessor(model="gpt-4o-mini")
 evidence, summary = await processor.analyze_evidence(claim, evidence_list)

@@ -29,53 +29,55 @@ Two graph variants:
 
 ```
 src/truthfulness_evaluator/
-├── models/                # Pydantic domain models (pure data containers)
-│   ├── types.py           # Verdict type alias
-│   ├── claim.py           # Claim
-│   ├── evidence.py        # Evidence
-│   ├── verification.py    # VerificationResult
-│   └── report.py          # TruthfulnessReport, TruthfulnessStatistics
-├── protocols.py           # Protocol interfaces (ClaimExtractor, EvidenceGatherer, ClaimVerifier, ReportFormatter)
-├── py.typed               # PEP 561 marker
-├── core/
-│   ├── config.py          # EvaluatorConfig (pydantic-settings, env-prefix TRUTH_)
-│   ├── grading.py         # Grading logic (calculate_grade, build_report, is_verified)
-│   ├── llm.py             # Centralized LLM provider factory
-│   └── logging_config.py  # Logging setup
-├── workflows/
-│   ├── graph.py           # Primary LangGraph workflow (external verification)
-│   ├── graph_internal.py  # Internal/codebase verification workflow
-│   ├── state.py           # Unified WorkflowState TypedDict
-│   ├── config.py          # WorkflowConfig dataclass
-│   ├── registry.py        # WorkflowRegistry (name -> config mapping + plugin discovery)
-│   ├── builder.py         # WorkflowBuilder (stub — Phase 3)
-│   └── presets.py         # Built-in workflow presets (stub — Phase 2)
-├── chains/                # Legacy chains (to be replaced by strategy implementations)
-│   ├── extraction.py      # Claim extraction (SimpleClaimExtractionChain, TripletExtractionChain)
-│   ├── verification.py    # Single-model verification with structured outputs
-│   ├── consensus.py       # Multi-model consensus (weighted voting, ICE ensemble)
-│   ├── evidence.py        # Evidence analysis and relevance scoring
-│   └── internal_verification.py  # Code-doc alignment (AST, config, version checking)
-├── evidence/
-│   ├── agent.py           # Filesystem ReAct agent for evidence gathering
+├── __init__.py              # Root public API (re-exports strategies, models, protocols)
+├── truth.py                 # Typer CLI entry point
+├── py.typed                 # PEP 561 marker
+├── models/                  # Pydantic domain models (pure data containers)
+│   ├── types.py             # Verdict type alias
+│   ├── claim.py             # Claim
+│   ├── evidence.py          # Evidence
+│   ├── verification.py      # VerificationResult
+│   └── report.py            # TruthfulnessReport, TruthfulnessStatistics
+├── core/                    # Abstractions and configuration
+│   ├── config.py            # EvaluatorConfig (pydantic-settings, env-prefix TRUTH_)
+│   ├── grading.py           # Grading logic (calculate_grade, build_report, is_verified)
+│   ├── logging_config.py    # Logging setup
+│   └── protocols.py         # Protocol interfaces (ClaimExtractor, EvidenceGatherer, ClaimVerifier, ReportFormatter)
+├── llm/                     # All LangChain/LangGraph integration code
+│   ├── factory.py           # Centralized LLM provider factory (create_chat_model)
+│   ├── chains/              # LLM chain implementations
+│   │   ├── extraction.py    # Claim extraction (SimpleClaimExtractionChain, TripletExtractionChain)
+│   │   ├── verification.py  # Single-model verification with structured outputs
+│   │   ├── consensus.py     # Multi-model consensus (weighted voting, ICE ensemble)
+│   │   ├── evidence.py      # Evidence analysis and relevance scoring
+│   │   └── internal_verification.py  # Code-doc alignment (AST, config, version checking)
+│   ├── prompts/             # LLM prompt templates
+│   │   ├── extraction.py    # Claim extraction prompts
+│   │   ├── verification.py  # Verification prompts
+│   │   └── consensus.py     # Consensus prompts
+│   └── workflows/           # LangGraph state machine workflows
+│       ├── graph.py         # Primary workflow (external verification)
+│       ├── graph_internal.py # Internal/codebase verification workflow
+│       ├── state.py         # Unified WorkflowState TypedDict
+│       ├── config.py        # WorkflowConfig dataclass
+│       ├── registry.py      # WorkflowRegistry (name → config mapping + plugin discovery)
+│       ├── builder.py       # WorkflowBuilder (stub — Phase 3)
+│       └── presets.py       # Built-in workflow presets
+├── strategies/              # Protocol adapter implementations
+│   ├── extractors/          # SimpleExtractor, TripletExtractor
+│   ├── gatherers/           # WebSearchGatherer, FilesystemGatherer, CompositeGatherer
+│   ├── verifiers/           # SingleModelVerifier, ConsensusVerifier, InternalVerifier
+│   └── formatters/          # JsonFormatter, MarkdownFormatter, HtmlFormatter
+├── evidence/                # Evidence gathering infrastructure
+│   ├── agent.py             # Filesystem ReAct agent
 │   └── tools/
-│       ├── filesystem.py  # Filesystem tools (list, read, grep, find_related)
+│       ├── filesystem.py    # Filesystem tools (list, read, grep, find_related)
 │       ├── enhanced_filesystem.py  # Chunked reading, AST search
-│       └── web_search.py  # Web search + URL fetching (DuckDuckGo)
-├── reporting/
-│   ├── generator.py       # Report generation (JSON, Markdown, HTML)
-│   └── templates/
-│       └── report.html.j2 # HTML report template
-├── cli/
-│   └── truth.py           # Typer CLI (truth-eval command)
-├── prompts/
-│   ├── extraction.py      # Claim extraction prompts (general, scientific, historical, technical)
-│   ├── verification.py    # Verification prompts (general, evidence analysis, refutation)
-│   └── consensus.py       # Consensus synthesis, debate (ICE), report summary prompts
-├── extractors/            # Pluggable claim extraction strategies (Phase 2)
-├── gatherers/             # Pluggable evidence gathering strategies (Phase 2)
-├── verifiers/             # Pluggable claim verification strategies (Phase 2)
-└── formatters/            # Pluggable report formatting strategies (Phase 2)
+│       └── web_search.py    # Web search + URL fetching (DuckDuckGo)
+└── reporting/               # Report generation
+    ├── generator.py         # Report generation (JSON, Markdown, HTML)
+    └── templates/
+        └── report.html.j2   # HTML report template
 ```
 
 ### Key Design Patterns

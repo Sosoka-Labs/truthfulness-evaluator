@@ -1,5 +1,7 @@
 """Centralized LLM provider factory."""
 
+from typing import Any
+
 from langchain_core.language_models import BaseChatModel
 
 from ..core.logging_config import get_logger
@@ -42,7 +44,7 @@ def _detect_provider(model_name: str, **kwargs: object) -> str:
 def create_chat_model(
     model_name: str,
     temperature: float = 0,
-    **kwargs,
+    **kwargs: Any,
 ) -> BaseChatModel:
     """Create a chat model instance from a model name string.
 
@@ -66,7 +68,9 @@ def create_chat_model(
 
     if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
+
         return ChatAnthropic(model=model_name, temperature=temperature, **kwargs)
 
     from langchain_openai import ChatOpenAI
+
     return ChatOpenAI(model=model_name, temperature=temperature, **kwargs)

@@ -147,9 +147,9 @@ The system provides 11 built-in adapters implementing the protocol interfaces:
 Each adapter accepts configuration parameters at initialization:
 
 ```python
-from truthfulness_evaluator.extractors import SimpleExtractor, TripletExtractor
-from truthfulness_evaluator.gatherers import WebSearchGatherer, FilesystemGatherer
-from truthfulness_evaluator.verifiers import SingleModelVerifier, ConsensusVerifier
+from truthfulness_evaluator import SimpleExtractor, TripletExtractor
+from truthfulness_evaluator import WebSearchGatherer, FilesystemGatherer
+from truthfulness_evaluator import SingleModelVerifier, ConsensusVerifier
 
 # Extractors
 simple = SimpleExtractor(model="gpt-4o-mini")
@@ -271,11 +271,11 @@ class WorkflowConfig:
 ### Creating Custom Configs
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.extractors import TripletExtractor
-from truthfulness_evaluator.gatherers import WebSearchGatherer
-from truthfulness_evaluator.verifiers import ConsensusVerifier
-from truthfulness_evaluator.formatters import MarkdownFormatter, HtmlFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import TripletExtractor
+from truthfulness_evaluator import WebSearchGatherer
+from truthfulness_evaluator import ConsensusVerifier
+from truthfulness_evaluator import MarkdownFormatter, HtmlFormatter
 
 config = WorkflowConfig(
     name="scientific",
@@ -300,11 +300,11 @@ The `WorkflowRegistry` manages workflow configurations with registration, lookup
 ### Registration
 
 ```python
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
-from truthfulness_evaluator.workflows.config import WorkflowConfig
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
 
 # Register built-in presets
-from truthfulness_evaluator.workflows.presets import register_builtin_presets
+from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
 register_builtin_presets()
 
 # Register custom workflow
@@ -406,8 +406,8 @@ Gatherers and verifiers can access context for configuration and state.
 ### Using Presets
 
 ```python
-from truthfulness_evaluator.workflows.presets import register_builtin_presets
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
 
 # Register built-in workflows
 register_builtin_presets()
@@ -422,11 +422,11 @@ quick_config = WorkflowRegistry.get("quick")
 ### Creating Custom Workflows
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.extractors import SimpleExtractor
-from truthfulness_evaluator.gatherers import WebSearchGatherer, FilesystemGatherer, CompositeGatherer
-from truthfulness_evaluator.verifiers import ConsensusVerifier
-from truthfulness_evaluator.formatters import JsonFormatter, MarkdownFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import SimpleExtractor
+from truthfulness_evaluator import WebSearchGatherer, FilesystemGatherer, CompositeGatherer
+from truthfulness_evaluator import ConsensusVerifier
+from truthfulness_evaluator import JsonFormatter, MarkdownFormatter
 
 # Define custom strategy instances
 extractor = SimpleExtractor(model="gpt-4o")
@@ -455,7 +455,7 @@ config = WorkflowConfig(
 )
 
 # Register for reuse
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
 WorkflowRegistry.register("custom-comprehensive", config)
 ```
 

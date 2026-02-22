@@ -1,16 +1,16 @@
 """Shared pytest fixtures for truthfulness-evaluator tests."""
 
-import pytest
 from pathlib import Path
 
+import pytest
+from truthfulness_evaluator.core.config import EvaluatorConfig
 from truthfulness_evaluator.models import (
     Claim,
     Evidence,
-    VerificationResult,
     TruthfulnessReport,
     TruthfulnessStatistics,
+    VerificationResult,
 )
-from truthfulness_evaluator.core.config import EvaluatorConfig
 
 
 @pytest.fixture

@@ -3,10 +3,11 @@
 from langchain_core.prompts import ChatPromptTemplate
 
 # Consensus synthesis prompt
-CONSENSUS_SYNTHESIS_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """You are synthesizing multiple model verdicts into a final consensus.
+CONSENSUS_SYNTHESIS_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are synthesizing multiple model verdicts into a final consensus.
 
 Given multiple model votes on a claim:
 1. Analyze agreement and disagreement
@@ -14,11 +15,11 @@ Given multiple model votes on a claim:
 3. Identify any edge cases or uncertainties
 4. Produce a final verdict with synthesized reasoning
 
-If models disagree, explain the points of contention and why one verdict is preferred."""
-    ),
-    (
-        "user",
-        """CLAIM: {claim}
+If models disagree, explain the points of contention and why one verdict is preferred.""",
+        ),
+        (
+            "user",
+            """CLAIM: {claim}
 
 MODEL VOTES:
 {votes}
@@ -26,15 +27,17 @@ MODEL VOTES:
 EVIDENCE SUMMARY:
 {evidence_summary}
 
-Synthesize into final verdict."""
-    ),
-])
+Synthesize into final verdict.""",
+        ),
+    ]
+)
 
 # Debate/critique prompt for ICE (Iterative Consensus Ensemble)
-DEBATE_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """You are participating in a structured debate to verify a claim.
+DEBATE_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are participating in a structured debate to verify a claim.
 
 Your previous verdict: {previous_verdict}
 Your confidence: {previous_confidence}
@@ -44,11 +47,11 @@ Other models have provided different verdicts. Review their reasoning and either
 2. Revise your position based on their arguments
 3. Propose a compromise or nuanced position
 
-Be specific about what evidence or reasoning changed your mind (if anything)."""
-    ),
-    (
-        "user",
-        """CLAIM: {claim}
+Be specific about what evidence or reasoning changed your mind (if anything).""",
+        ),
+        (
+            "user",
+            """CLAIM: {claim}
 
 OTHER MODEL VERDICTS:
 {other_votes}
@@ -56,15 +59,17 @@ OTHER MODEL VERDICTS:
 EVIDENCE:
 {evidence}
 
-Review and update your verdict."""
-    ),
-])
+Review and update your verdict.""",
+        ),
+    ]
+)
 
 # Report generation prompt
-REPORT_SUMMARY_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """You are generating an executive summary of a truthfulness evaluation.
+REPORT_SUMMARY_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are generating an executive summary of a truthfulness evaluation.
 
 Given verification results for multiple claims:
 1. Summarize overall accuracy
@@ -72,11 +77,11 @@ Given verification results for multiple claims:
 3. Identify claims needing attention
 4. Provide actionable recommendations
 
-Keep the summary concise but informative."""
-    ),
-    (
-        "user",
-        """EVALUATION RESULTS:
+Keep the summary concise but informative.""",
+        ),
+        (
+            "user",
+            """EVALUATION RESULTS:
 - Total claims: {total_claims}
 - Supported: {supported}
 - Refuted: {refuted}
@@ -87,15 +92,17 @@ Keep the summary concise but informative."""
 CLAIMS:
 {claims_summary}
 
-Generate executive summary."""
-    ),
-])
+Generate executive summary.""",
+        ),
+    ]
+)
 
 # Evidence synthesis prompt
-EVIDENCE_SYNTHESIS_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """Synthesize multiple pieces of evidence into a coherent summary.
+EVIDENCE_SYNTHESIS_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """Synthesize multiple pieces of evidence into a coherent summary.
 
 Consider:
 - Agreement across sources
@@ -103,7 +110,8 @@ Consider:
 - Relevance to the claim
 - Any contradictions or gaps
 
-Provide a balanced summary that captures the overall evidentiary landscape."""
-    ),
-    ("user", "Synthesize this evidence for the claim '{claim}':\n\n{evidence}"),
-])
+Provide a balanced summary that captures the overall evidentiary landscape.""",
+        ),
+        ("user", "Synthesize this evidence for the claim '{claim}':\n\n{evidence}"),
+    ]
+)

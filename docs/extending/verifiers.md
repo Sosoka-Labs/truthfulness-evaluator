@@ -130,10 +130,10 @@ class DeterministicVerifier:
 ## Registering with WorkflowConfig
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.extractors import SimpleExtractor
-from truthfulness_evaluator.gatherers import FilesystemGatherer
-from truthfulness_evaluator.formatters import JsonFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import SimpleExtractor
+from truthfulness_evaluator import FilesystemGatherer
+from truthfulness_evaluator import JsonFormatter
 
 config = WorkflowConfig(
     name="deterministic",

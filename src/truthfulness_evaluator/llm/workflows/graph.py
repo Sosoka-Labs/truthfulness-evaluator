@@ -14,6 +14,7 @@ logger = get_logger()
 
 class TruthfulnessState(TypedDict):
     """State managed by the graph."""
+
     document: str
     document_path: str
     root_path: str | None
@@ -40,19 +41,11 @@ async def extract_claims_node(state: TruthfulnessState) -> dict:
     # Use simple extraction for now (RefChecker has dependency issues)
     extractor = SimpleClaimExtractionChain(model=config.extraction_model)
 
-    claims = await extractor.extract(
-        state["document"],
-        state["document_path"]
-    )
+    claims = await extractor.extract(state["document"], state["document_path"])
 
     logger.info(f"Extracted {len(claims)} claims")
 
-    return {
-        "claims": claims,
-        "current_claim_index": 0,
-        "verifications": [],
-        "evidence_cache": {}
-    }
+    return {"claims": claims, "current_claim_index": 0, "verifications": [], "evidence_cache": {}}
 
 
 async def search_evidence_node(state: TruthfulnessState) -> dict:
@@ -81,13 +74,15 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
             fs_evidence = await agent.search(claim.text)
 
             for e in fs_evidence:
-                evidence.append(Evidence(
-                    source=e.get("file_path", "unknown"),
-                    source_type="filesystem",
-                    content=e.get("content", "")[:1000],
-                    relevance_score=e.get("relevance", 0.5),
-                    supports_claim=e.get("supports")
-                ))
+                evidence.append(
+                    Evidence(
+                        source=e.get("file_path", "unknown"),
+                        source_type="filesystem",
+                        content=e.get("content", "")[:1000],
+                        relevance_score=e.get("relevance", 0.5),
+                        supports_claim=e.get("supports"),
+                    )
+                )
 
             if fs_evidence:
                 logger.debug(f"Found {len(fs_evidence)} filesystem evidence items")
@@ -106,22 +101,27 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
 
             for e in web_evidence:
                 if "error" not in e:
-                    evidence.append(Evidence(
-                        source=e.get("source", "web"),
-                        source_type="web",
-                        content=e.get("content", "")[:1500],
-                        relevance_score=e.get("relevance", 0.6),
-                        supports_claim=None  # Will be determined during verification
-                    ))
+                    evidence.append(
+                        Evidence(
+                            source=e.get("source", "web"),
+                            source_type="web",
+                            content=e.get("content", "")[:1500],
+                            relevance_score=e.get("relevance", 0.6),
+                            supports_claim=None,  # Will be determined during verification
+                        )
+                    )
 
             if evidence:
-                logger.debug(f"Added {len([e for e in evidence if e.source_type == 'web'])} web evidence items")
+                logger.debug(
+                    f"Added {len([e for e in evidence if e.source_type == 'web'])} web evidence items"
+                )
         except Exception as e:
             logger.warning(f"Web search failed: {e}")
 
     # Process and analyze evidence
     if evidence:
         from ..chains.evidence import EvidenceProcessor
+
         processor = EvidenceProcessor(model=config.extraction_model)
 
         try:
@@ -148,7 +148,10 @@ async def verify_claim_node(state: TruthfulnessState) -> dict:
         return {"verifications": [], "current_claim_index": 0}
 
     if state["current_claim_index"] >= len(state["claims"]):
-        return {"verifications": state["verifications"], "current_claim_index": state["current_claim_index"]}
+        return {
+            "verifications": state["verifications"],
+            "current_claim_index": state["current_claim_index"],
+        }
 
     claim = state["claims"][state["current_claim_index"]]
     evidence = state.get("evidence_cache", {}).get(claim.id, [])
@@ -158,8 +161,7 @@ async def verify_claim_node(state: TruthfulnessState) -> dict:
     from ..chains.consensus import ConsensusChain
 
     consensus = ConsensusChain(
-        model_names=config.verification_models,
-        confidence_threshold=config.confidence_threshold
+        model_names=config.verification_models, confidence_threshold=config.confidence_threshold
     )
 
     verification = await consensus.verify(claim, evidence)
@@ -169,14 +171,16 @@ async def verify_claim_node(state: TruthfulnessState) -> dict:
     # Human-in-the-loop for low confidence
     if config.enable_human_review and verification.confidence < config.human_review_threshold:
         logger.info("Requesting human review...")
-        human_input = interrupt({
-            "type": "human_review",
-            "claim": claim.text,
-            "proposed_verdict": verification.verdict,
-            "confidence": verification.confidence,
-            "evidence_count": len(evidence),
-            "question": "Approve this verdict? (approve/correct:VERDICT/skip)"
-        })
+        human_input = interrupt(
+            {
+                "type": "human_review",
+                "claim": claim.text,
+                "proposed_verdict": verification.verdict,
+                "confidence": verification.confidence,
+                "evidence_count": len(evidence),
+                "question": "Approve this verdict? (approve/correct:VERDICT/skip)",
+            }
+        )
 
         if human_input:
             response = human_input.get("response", "").strip().lower()
@@ -197,7 +201,7 @@ async def verify_claim_node(state: TruthfulnessState) -> dict:
 
     return {
         "verifications": new_verifications,
-        "current_claim_index": state["current_claim_index"] + 1
+        "current_claim_index": state["current_claim_index"] + 1,
     }
 
 
@@ -247,10 +251,7 @@ def create_truthfulness_graph():
     builder.add_conditional_edges(
         "verify_claim",
         should_continue,
-        {
-            "search_evidence": "search_evidence",
-            "generate_report": "generate_report"
-        }
+        {"search_evidence": "search_evidence", "generate_report": "generate_report"},
     )
 
     builder.add_edge("generate_report", END)

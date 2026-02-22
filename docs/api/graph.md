@@ -3,7 +3,7 @@
 ## create_truthfulness_graph
 
 ```python
-from truthfulness_evaluator.workflows.graph import create_truthfulness_graph
+from truthfulness_evaluator.llm.workflows.graph import create_truthfulness_graph
 
 graph = create_truthfulness_graph()
 ```
@@ -13,7 +13,7 @@ Returns a compiled LangGraph with checkpointing.
 ## State
 
 ```python
-from truthfulness_evaluator.workflows.state import WorkflowState
+from truthfulness_evaluator.llm.workflows.state import WorkflowState
 
 class WorkflowState(TypedDict):
     document: str
@@ -109,7 +109,7 @@ Build your own workflow:
 
 ```python
 from langgraph.graph import StateGraph, START, END
-from truthfulness_evaluator.workflows.state import WorkflowState
+from truthfulness_evaluator.llm.workflows.state import WorkflowState
 
 builder = StateGraph(WorkflowState)
 
@@ -144,14 +144,14 @@ new_config = graph.get_state(past_state.config)
 
 ### Graph Creation
 
-::: truthfulness_evaluator.workflows.graph.create_truthfulness_graph
+::: truthfulness_evaluator.llm.workflows.graph.create_truthfulness_graph
     options:
       show_root_heading: true
       show_source: true
 
 ### State
 
-::: truthfulness_evaluator.workflows.state.WorkflowState
+::: truthfulness_evaluator.llm.workflows.state.WorkflowState
     options:
       show_root_heading: true
       show_source: true

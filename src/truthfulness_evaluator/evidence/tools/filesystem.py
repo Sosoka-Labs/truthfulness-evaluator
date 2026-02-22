@@ -68,7 +68,7 @@ def get_filesystem_tools(root_path: str):
 
             # Read file with size limit
             max_size = 100 * 1024  # 100 KB limit
-            content = target.read_text(encoding='utf-8', errors='ignore')
+            content = target.read_text(encoding="utf-8", errors="ignore")
 
             if len(content) > max_size:
                 content = content[:max_size] + "\n... (truncated)"
@@ -101,8 +101,8 @@ def get_filesystem_tools(root_path: str):
                     continue
 
                 try:
-                    content = file_path.read_text(encoding='utf-8', errors='ignore')
-                    lines = content.split('\n')
+                    content = file_path.read_text(encoding="utf-8", errors="ignore")
+                    lines = content.split("\n")
 
                     file_matches = []
                     for i, line in enumerate(lines, 1):
@@ -110,12 +110,14 @@ def get_filesystem_tools(root_path: str):
                             # Get context (2 lines before and after)
                             start = max(0, i - 3)
                             end = min(len(lines), i + 2)
-                            context = '\n'.join(f"{j+1}: {lines[j]}" for j in range(start, end))
+                            context = "\n".join(f"{j+1}: {lines[j]}" for j in range(start, end))
                             file_matches.append(f"Line {i}:\n{context}")
 
                     if file_matches:
                         rel_path = file_path.relative_to(root)
-                        matches.append(f"📄 {rel_path}:\n" + '\n---\n'.join(file_matches[:3]))  # Max 3 matches per file
+                        matches.append(
+                            f"📄 {rel_path}:\n" + "\n---\n".join(file_matches[:3])
+                        )  # Max 3 matches per file
 
                 except Exception:
                     continue
@@ -123,7 +125,7 @@ def get_filesystem_tools(root_path: str):
             if not matches:
                 return f"No matches found for '{pattern}'"
 
-            return '\n\n'.join(matches[:10])  # Max 10 files
+            return "\n\n".join(matches[:10])  # Max 10 files
 
         except Exception as e:
             return f"Error searching: {str(e)}"
@@ -148,25 +150,25 @@ def get_filesystem_tools(root_path: str):
             if not target.exists():
                 return f"Error: File not found: {file_path}"
 
-            content = target.read_text(encoding='utf-8', errors='ignore')
+            content = target.read_text(encoding="utf-8", errors="ignore")
             related = []
 
             # Look for common reference patterns
             import re
 
             # Python imports
-            python_imports = re.findall(r'(?:from|import)\s+(\S+)', content)
+            python_imports = re.findall(r"(?:from|import)\s+(\S+)", content)
             for imp in python_imports[:10]:
                 # Convert import to potential file path
-                parts = imp.split('.')
+                parts = imp.split(".")
                 potential_path = root / (parts[0] + ".py")
                 if potential_path.exists() and potential_path != target:
                     related.append(f"🐍 Python import: {potential_path.relative_to(root)}")
 
             # Markdown links
-            md_links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+            md_links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
             for _text, link in md_links[:10]:
-                if not link.startswith(('http://', 'https://', '#')):
+                if not link.startswith(("http://", "https://", "#")):
                     potential_path = (target.parent / link).resolve()
                     if str(potential_path).startswith(str(root)) and potential_path.exists():
                         related.append(f"🔗 Link: {potential_path.relative_to(root)}")
@@ -174,7 +176,7 @@ def get_filesystem_tools(root_path: str):
             if not related:
                 return "No related files found"
 
-            return '\n'.join(related[:20])
+            return "\n".join(related[:20])
 
         except Exception as e:
             return f"Error finding related files: {str(e)}"

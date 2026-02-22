@@ -34,7 +34,7 @@ TRUTH_CONFIDENCE_THRESHOLD=0.6
 Load automatically:
 
 ```python
-from truthfulness_evaluator.config import EvaluatorConfig
+from truthfulness_evaluator.core.config import EvaluatorConfig
 
 config = EvaluatorConfig()  # Reads .env
 ```
@@ -42,7 +42,7 @@ config = EvaluatorConfig()  # Reads .env
 ## Python Configuration
 
 ```python
-from truthfulness_evaluator.config import EvaluatorConfig
+from truthfulness_evaluator.core.config import EvaluatorConfig
 
 config = EvaluatorConfig(
     # Models

@@ -31,25 +31,15 @@ class TruthfulnessReport(BaseModel):
 
     source_document: str = Field(description="Path/URL of source document")
     overall_grade: Optional[str] = Field(
-        default=None,
-        pattern=r"^[A-F][+-]?$",
-        description="Letter grade (A+ to F)"
+        default=None, pattern=r"^[A-F][+-]?$", description="Letter grade (A+ to F)"
     )
     overall_confidence: float = Field(
-        default=0.0,
-        ge=0.0, le=1.0,
-        description="Overall confidence in the evaluation"
+        default=0.0, ge=0.0, le=1.0, description="Overall confidence in the evaluation"
     )
-    summary: str = Field(
-        default="",
-        description="Executive summary of findings"
-    )
+    summary: str = Field(default="", description="Executive summary of findings")
     claims: list[Claim] = Field(default_factory=list)
     verifications: list[VerificationResult] = Field(default_factory=list)
     unvalidated_claims: list[Claim] = Field(
-        default_factory=list,
-        description="Claims that could not be validated"
+        default_factory=list, description="Claims that could not be validated"
     )
-    statistics: TruthfulnessStatistics = Field(
-        default_factory=TruthfulnessStatistics
-    )
+    statistics: TruthfulnessStatistics = Field(default_factory=TruthfulnessStatistics)

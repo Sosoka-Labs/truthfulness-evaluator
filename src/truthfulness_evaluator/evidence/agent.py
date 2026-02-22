@@ -146,12 +146,14 @@ Return findings as JSON."""
                             file_path = args_dict.get("file_path", "")
                             if file_path and file_path not in seen_files:
                                 seen_files.add(file_path)
-                                evidence.append({
-                                    "file_path": file_path,
-                                    "content": "File examined by agent",
-                                    "relevance": 0.6,
-                                    "supports": None,
-                                })
+                                evidence.append(
+                                    {
+                                        "file_path": file_path,
+                                        "content": "File examined by agent",
+                                        "relevance": 0.6,
+                                        "supports": None,
+                                    }
+                                )
                         except (json.JSONDecodeError, AttributeError):
                             continue
 

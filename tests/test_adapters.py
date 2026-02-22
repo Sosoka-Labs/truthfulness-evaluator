@@ -8,41 +8,39 @@ Tests verify:
 - Preset registration
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+from truthfulness_evaluator.core.grading import build_report
 from truthfulness_evaluator.core.protocols import (
     ClaimExtractor,
-    EvidenceGatherer,
     ClaimVerifier,
+    EvidenceGatherer,
     ReportFormatter,
 )
+from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
+
+# Preset imports
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
 from truthfulness_evaluator.models import (
     Claim,
     Evidence,
     VerificationResult,
-    TruthfulnessReport,
 )
-from truthfulness_evaluator.core.grading import build_report
 
 # Adapter imports
 from truthfulness_evaluator.strategies.extractors.simple import SimpleExtractor
 from truthfulness_evaluator.strategies.extractors.triplet import TripletExtractor
-from truthfulness_evaluator.strategies.gatherers.web import WebSearchGatherer
-from truthfulness_evaluator.strategies.gatherers.filesystem import FilesystemGatherer
-from truthfulness_evaluator.strategies.gatherers.composite import CompositeGatherer
-from truthfulness_evaluator.strategies.verifiers.single_model import SingleModelVerifier
-from truthfulness_evaluator.strategies.verifiers.consensus import ConsensusVerifier
-from truthfulness_evaluator.strategies.verifiers.internal import InternalVerifier
+from truthfulness_evaluator.strategies.formatters.html import HtmlFormatter
 from truthfulness_evaluator.strategies.formatters.json_fmt import JsonFormatter
 from truthfulness_evaluator.strategies.formatters.markdown import MarkdownFormatter
-from truthfulness_evaluator.strategies.formatters.html import HtmlFormatter
-
-# Preset imports
-from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
-from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
-
+from truthfulness_evaluator.strategies.gatherers.composite import CompositeGatherer
+from truthfulness_evaluator.strategies.gatherers.filesystem import FilesystemGatherer
+from truthfulness_evaluator.strategies.gatherers.web import WebSearchGatherer
+from truthfulness_evaluator.strategies.verifiers.consensus import ConsensusVerifier
+from truthfulness_evaluator.strategies.verifiers.internal import InternalVerifier
+from truthfulness_evaluator.strategies.verifiers.single_model import SingleModelVerifier
 
 # =============================================================================
 # Fixtures
@@ -461,9 +459,7 @@ async def test_composite_gatherer_max_total_evidence():
         ]
     )
 
-    gatherer = CompositeGatherer(
-        gatherers=[mock_gatherer1, mock_gatherer2], max_total_evidence=3
-    )
+    gatherer = CompositeGatherer(gatherers=[mock_gatherer1, mock_gatherer2], max_total_evidence=3)
     claim = Claim(id="c1", text="Test claim", source_document="test.md")
 
     result = await gatherer.gather(claim, {})
@@ -537,11 +533,7 @@ async def test_single_model_verifier_forwarding():
     ):
         verifier = SingleModelVerifier(model="gpt-4o")
         claim = Claim(id="c1", text="Test claim", source_document="test.md")
-        evidence = [
-            Evidence(
-                source="test", source_type="web", content="test", relevance_score=0.9
-            )
-        ]
+        evidence = [Evidence(source="test", source_type="web", content="test", relevance_score=0.9)]
 
         result = await verifier.verify(claim, evidence)
 
@@ -569,9 +561,7 @@ async def test_consensus_verifier_forwarding():
     ) as mock_constructor:
         models = ["gpt-4o", "claude-3-5-sonnet-20241022"]
         weights = {"gpt-4o": 0.6, "claude-3-5-sonnet-20241022": 0.4}
-        verifier = ConsensusVerifier(
-            models=models, weights=weights, confidence_threshold=0.8
-        )
+        verifier = ConsensusVerifier(models=models, weights=weights, confidence_threshold=0.8)
 
         # Verify constructor was called with correct params
         mock_constructor.assert_called_once_with(
@@ -622,12 +612,15 @@ async def test_internal_verifier_api_signature_delegation():
     )
     mock_chain.verify.return_value = mock_result
 
-    with patch(
-        "truthfulness_evaluator.strategies.verifiers.internal.ClaimClassifier",
-        return_value=mock_classifier,
-    ), patch(
-        "truthfulness_evaluator.strategies.verifiers.internal.InternalVerificationChain",
-        return_value=mock_chain,
+    with (
+        patch(
+            "truthfulness_evaluator.strategies.verifiers.internal.ClaimClassifier",
+            return_value=mock_classifier,
+        ),
+        patch(
+            "truthfulness_evaluator.strategies.verifiers.internal.InternalVerificationChain",
+            return_value=mock_chain,
+        ),
     ):
         verifier = InternalVerifier(root_path="/project")
         claim = Claim(id="c1", text="API uses FastAPI", source_document="README.md")

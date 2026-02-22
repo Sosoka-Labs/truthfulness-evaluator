@@ -31,9 +31,7 @@ def register_builtin_presets() -> None:
             name="full",
             description="Comprehensive verification using web and filesystem evidence.",
             extractor=SimpleExtractor(),
-            gatherers=[
-                CompositeGatherer([WebSearchGatherer(), FilesystemGatherer()])
-            ],
+            gatherers=[CompositeGatherer([WebSearchGatherer(), FilesystemGatherer()])],
             verifier=ConsensusVerifier(models=["gpt-4o", "claude-sonnet-4-5"]),
             formatters=[JsonFormatter(), MarkdownFormatter(), HtmlFormatter()],
         ),

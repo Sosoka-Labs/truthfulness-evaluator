@@ -9,8 +9,8 @@ The Truthfulness Evaluator now supports a pluggable workflow architecture that a
 Four preset workflows are available out of the box:
 
 ```python
-from truthfulness_evaluator.workflows.presets import register_builtin_presets
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
 
 # Register built-in workflows
 register_builtin_presets()
@@ -25,7 +25,7 @@ quick_config = WorkflowRegistry.get("quick")
 full_config = WorkflowRegistry.get("full")
 
 # Use internal verification (codebase alignment)
-from truthfulness_evaluator.workflows.presets import create_internal_config
+from truthfulness_evaluator.llm.workflows.presets import create_internal_config
 internal_config = create_internal_config(root_path="/path/to/project")
 ```
 
@@ -34,11 +34,11 @@ internal_config = create_internal_config(root_path="/path/to/project")
 Compose your own workflows from adapter strategies:
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.extractors import SimpleExtractor
-from truthfulness_evaluator.gatherers import WebSearchGatherer, FilesystemGatherer, CompositeGatherer
-from truthfulness_evaluator.verifiers import ConsensusVerifier
-from truthfulness_evaluator.formatters import JsonFormatter, MarkdownFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import SimpleExtractor
+from truthfulness_evaluator import WebSearchGatherer, FilesystemGatherer, CompositeGatherer
+from truthfulness_evaluator import ConsensusVerifier
+from truthfulness_evaluator import JsonFormatter, MarkdownFormatter
 
 config = WorkflowConfig(
     name="custom",

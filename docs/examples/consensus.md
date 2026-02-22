@@ -64,7 +64,7 @@ claude: SUPPORTS
 ## Python API
 
 ```python
-from truthfulness_evaluator.chains.consensus import ConsensusChain
+from truthfulness_evaluator.llm.chains.consensus import ConsensusChain
 
 consensus = ConsensusChain(
     model_names=["gpt-4o", "gpt-4o-mini", "claude-sonnet-4-5"],
@@ -89,7 +89,7 @@ print(result.model_votes)
 Models critique each other:
 
 ```python
-from truthfulness_evaluator.chains.consensus import ICEConsensusChain
+from truthfulness_evaluator.llm.chains.consensus import ICEConsensusChain
 
 ice = ICEConsensusChain(
     model_names=["gpt-4o", "gpt-4o-mini"],

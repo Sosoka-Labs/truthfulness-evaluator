@@ -148,7 +148,7 @@ truth-eval README.md --root-path . --mode both
 ## Python API
 
 ```python
-from truthfulness_evaluator.graph_internal import create_internal_verification_graph
+from truthfulness_evaluator.llm.workflows.graph_internal import create_internal_verification_graph
 
 graph = create_internal_verification_graph()
 

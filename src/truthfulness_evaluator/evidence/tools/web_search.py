@@ -45,14 +45,12 @@ def get_web_search_tools():
             import requests
             from bs4 import BeautifulSoup
 
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (compatible; TruthfulnessEvaluator/0.1)'
-            }
+            headers = {"User-Agent": "Mozilla/5.0 (compatible; TruthfulnessEvaluator/0.1)"}
 
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
 
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(response.text, "html.parser")
 
             # Remove script and style elements
             for script in soup(["script", "style", "nav", "footer", "header"]):
@@ -60,7 +58,7 @@ def get_web_search_tools():
 
             # Try to find main content
             main_content = None
-            for selector in ['main', 'article', '[role="main"]', '.content', '#content', '.post']:
+            for selector in ["main", "article", '[role="main"]', ".content", "#content", ".post"]:
                 main_content = soup.select_one(selector)
                 if main_content:
                     break
@@ -70,7 +68,7 @@ def get_web_search_tools():
             # Clean up whitespace
             lines = (line.strip() for line in text.splitlines())
             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-            text = '\n'.join(chunk for chunk in chunks if chunk)
+            text = "\n".join(chunk for chunk in chunks if chunk)
 
             # Limit length
             max_length = 8000
@@ -91,13 +89,9 @@ class WebEvidenceGatherer:
     def __init__(self) -> None:
         tools = get_web_search_tools()
         self.search_tool = tools[0]  # web_search
-        self.fetch_tool = tools[1]   # fetch_url
+        self.fetch_tool = tools[1]  # fetch_url
 
-    async def gather_evidence(
-        self,
-        claim: str,
-        max_results: int = 3
-    ) -> list[dict]:
+    async def gather_evidence(self, claim: str, max_results: int = 3) -> list[dict]:
         """
         Gather evidence from web for a claim.
 
@@ -116,7 +110,7 @@ class WebEvidenceGatherer:
         # Parse by looking for URL patterns and associated text
 
         # Extract URLs from search results
-        url_pattern = r'https?://[^\s\)\]\>\,]+'
+        url_pattern = r"https?://[^\s\)\]\>\,]+"
         urls = re.findall(url_pattern, search_result)
 
         # Split text by URLs to get snippets
@@ -130,29 +124,33 @@ class WebEvidenceGatherer:
                 snippet = parts[i] if i > 0 else parts[i] if i < len(parts) else ""
 
             # Clean up snippet
-            snippet = re.sub(r'\s+', ' ', snippet).strip()
+            snippet = re.sub(r"\s+", " ", snippet).strip()
             # Take middle portion if too long
             if len(snippet) > 600:
                 snippet = snippet[100:700]
 
             if snippet or url:
-                evidence.append({
-                    "source": url,
-                    "source_type": "web",
-                    "content": snippet or f"Search result for: {claim}",
-                    "relevance": 0.6,
-                    "fetched": False
-                })
+                evidence.append(
+                    {
+                        "source": url,
+                        "source_type": "web",
+                        "content": snippet or f"Search result for: {claim}",
+                        "relevance": 0.6,
+                        "fetched": False,
+                    }
+                )
 
         # If no URLs found but we have text, use the whole result
         if not evidence and search_result:
-            evidence.append({
-                "source": "duckduckgo_search",
-                "source_type": "web",
-                "content": search_result[:1500],
-                "relevance": 0.5,
-                "fetched": False
-            })
+            evidence.append(
+                {
+                    "source": "duckduckgo_search",
+                    "source_type": "web",
+                    "content": search_result[:1500],
+                    "relevance": 0.5,
+                    "fetched": False,
+                }
+            )
 
         # Fetch full content for top result if it's a real URL
         if evidence and evidence[0]["source"].startswith("http"):

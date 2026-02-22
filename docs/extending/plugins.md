@@ -28,7 +28,7 @@ truthfulness-plugin-scientific/
 
 ```python
 from truthfulness_evaluator.models import Claim
-from truthfulness_evaluator.core.llm import create_chat_model
+from truthfulness_evaluator.llm.factory import create_chat_model
 
 class ScientificExtractor:
     """Extracts research claims from papers."""
@@ -69,9 +69,9 @@ class PeerReviewVerifier:
 **workflow.py:**
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.gatherers import WebSearchGatherer
-from truthfulness_evaluator.formatters import JsonFormatter, MarkdownFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator import WebSearchGatherer
+from truthfulness_evaluator import JsonFormatter, MarkdownFormatter
 from .extractor import ScientificExtractor
 from .verifier import PeerReviewVerifier
 
@@ -127,7 +127,7 @@ The entry point syntax is:
 The `WorkflowRegistry` automatically discovers plugins on first access:
 
 ```python
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
 
 # List all workflows (built-ins + plugins)
 workflows = WorkflowRegistry.list_workflows()

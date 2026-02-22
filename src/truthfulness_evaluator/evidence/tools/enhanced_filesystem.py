@@ -66,13 +66,13 @@ class EnhancedFilesystemTools:
             if not target.exists():
                 return f"Error: File not found: {file_path}"
 
-            content = target.read_text(encoding='utf-8', errors='ignore')
+            content = target.read_text(encoding="utf-8", errors="ignore")
 
             # Add line numbers
-            lines = content.split('\n')
+            lines = content.split("\n")
             numbered = [f"{i+1:4d}: {line}" for i, line in enumerate(lines)]
 
-            return '\n'.join(numbered)
+            return "\n".join(numbered)
         except Exception as e:
             return f"Error: {str(e)}"
 
@@ -95,8 +95,8 @@ class EnhancedFilesystemTools:
             if not target.exists():
                 return f"Error: File not found: {file_path}"
 
-            content = target.read_text(encoding='utf-8', errors='ignore')
-            lines = content.split('\n')
+            content = target.read_text(encoding="utf-8", errors="ignore")
+            lines = content.split("\n")
 
             # Get chunk
             start = offset
@@ -111,7 +111,7 @@ class EnhancedFilesystemTools:
                 numbered.append(f"      ... ({len(lines) - end} more lines)")
 
             header = f"=== {file_path} (lines {start+1}-{end} of {len(lines)}) ===\n"
-            return header + '\n'.join(numbered)
+            return header + "\n".join(numbered)
         except Exception as e:
             return f"Error: {str(e)}"
 
@@ -136,8 +136,8 @@ class EnhancedFilesystemTools:
                     continue
 
                 try:
-                    content = file_path.read_text(encoding='utf-8', errors='ignore')
-                    lines = content.split('\n')
+                    content = file_path.read_text(encoding="utf-8", errors="ignore")
+                    lines = content.split("\n")
 
                     file_matches = []
                     for i, line in enumerate(lines, 1):
@@ -145,15 +145,14 @@ class EnhancedFilesystemTools:
                             # Get context
                             context_start = max(0, i - 2)
                             context_end = min(len(lines), i + 1)
-                            context = '\n'.join(
-                                f"{j+1:4d}: {lines[j]}"
-                                for j in range(context_start, context_end)
+                            context = "\n".join(
+                                f"{j+1:4d}: {lines[j]}" for j in range(context_start, context_end)
                             )
                             file_matches.append(f"Line {i}:\n{context}")
 
                     if file_matches:
                         rel_path = file_path.relative_to(self.root)
-                        results.append(f"📄 {rel_path}:\n" + '\n---\n'.join(file_matches[:2]))
+                        results.append(f"📄 {rel_path}:\n" + "\n---\n".join(file_matches[:2]))
 
                     if len(results) >= max_results:
                         break
@@ -164,7 +163,7 @@ class EnhancedFilesystemTools:
             if not results:
                 return f"No matches found for '{pattern}'"
 
-            return '\n\n'.join(results)
+            return "\n\n".join(results)
         except Exception as e:
             return f"Error: {str(e)}"
 
@@ -189,20 +188,24 @@ class EnhancedFilesystemTools:
                     tree = ast.parse(content)
 
                     for node in ast.walk(tree):
-                        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                            if node.name == function_name:
-                                # Extract function
-                                lines = content.split('\n')
-                                start = node.lineno - 1
-                                end = node.end_lineno if hasattr(node, 'end_lineno') else start + 20
-                                func_lines = lines[start:end]
+                        if (
+                            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                            and node.name == function_name
+                        ):
+                            # Extract function
+                            lines = content.split("\n")
+                            start = node.lineno - 1
+                            end = node.end_lineno if hasattr(node, "end_lineno") else start + 20
+                            func_lines = lines[start:end]
 
-                                # Add line numbers
-                                numbered = [f"{i+1:4d}: {line}" for i, line in enumerate(func_lines, start)]
+                            # Add line numbers
+                            numbered = [
+                                f"{i+1:4d}: {line}" for i, line in enumerate(func_lines, start)
+                            ]
 
-                                rel_path = py_file.relative_to(self.root)
-                                matches.append(f"=== {rel_path} ===\n" + '\n'.join(numbered))
-                                break
+                            rel_path = py_file.relative_to(self.root)
+                            matches.append(f"=== {rel_path} ===\n" + "\n".join(numbered))
+                            break
 
                     if len(matches) >= 3:  # Limit results
                         break
@@ -215,7 +218,7 @@ class EnhancedFilesystemTools:
             if not matches:
                 return f"Function '{function_name}' not found"
 
-            return '\n\n'.join(matches)
+            return "\n\n".join(matches)
         except Exception as e:
             return f"Error: {str(e)}"
 
@@ -240,20 +243,21 @@ class EnhancedFilesystemTools:
                     tree = ast.parse(content)
 
                     for node in ast.walk(tree):
-                        if isinstance(node, ast.ClassDef):
-                            if node.name == class_name:
-                                # Extract class
-                                lines = content.split('\n')
-                                start = node.lineno - 1
-                                end = node.end_lineno if hasattr(node, 'end_lineno') else start + 50
-                                class_lines = lines[start:end]
+                        if isinstance(node, ast.ClassDef) and node.name == class_name:
+                            # Extract class
+                            lines = content.split("\n")
+                            start = node.lineno - 1
+                            end = node.end_lineno if hasattr(node, "end_lineno") else start + 50
+                            class_lines = lines[start:end]
 
-                                # Add line numbers
-                                numbered = [f"{i+1:4d}: {line}" for i, line in enumerate(class_lines, start)]
+                            # Add line numbers
+                            numbered = [
+                                f"{i+1:4d}: {line}" for i, line in enumerate(class_lines, start)
+                            ]
 
-                                rel_path = py_file.relative_to(self.root)
-                                matches.append(f"=== {rel_path} ===\n" + '\n'.join(numbered))
-                                break
+                            rel_path = py_file.relative_to(self.root)
+                            matches.append(f"=== {rel_path} ===\n" + "\n".join(numbered))
+                            break
 
                     if len(matches) >= 3:
                         break
@@ -266,7 +270,7 @@ class EnhancedFilesystemTools:
             if not matches:
                 return f"Class '{class_name}' not found"
 
-            return '\n\n'.join(matches)
+            return "\n\n".join(matches)
         except Exception as e:
             return f"Error: {str(e)}"
 

@@ -26,7 +26,7 @@ Here's a custom extractor that focuses on extracting research claims from scient
 
 ```python
 from truthfulness_evaluator.models import Claim
-from truthfulness_evaluator.core.llm import create_chat_model
+from truthfulness_evaluator.llm.factory import create_chat_model
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
@@ -88,11 +88,11 @@ class ScientificClaimExtractor:
 To use your custom extractor in a workflow:
 
 ```python
-from truthfulness_evaluator.workflows.config import WorkflowConfig
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
-from truthfulness_evaluator.gatherers import WebSearchGatherer
-from truthfulness_evaluator.verifiers import SingleModelVerifier
-from truthfulness_evaluator.formatters import JsonFormatter
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator import WebSearchGatherer
+from truthfulness_evaluator import SingleModelVerifier
+from truthfulness_evaluator import JsonFormatter
 
 # Create extractor instance
 extractor = ScientificClaimExtractor(model="gpt-4o")
@@ -115,7 +115,7 @@ WorkflowRegistry.register("scientific", config)
 ## Best Practices
 
 !!! tip "LLM Initialization"
-    Use `create_chat_model()` from `truthfulness_evaluator.core.llm` for centralized provider management and consistent configuration.
+    Use `create_chat_model()` from `truthfulness_evaluator.llm.factory` for centralized provider management and consistent configuration.
 
 !!! warning "Context Window Limits"
     Always truncate document input to avoid exceeding model context limits. Scientific papers can be lengthy.

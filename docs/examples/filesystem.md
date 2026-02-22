@@ -242,7 +242,7 @@ Result:
 ## Python API
 
 ```python
-from truthfulness_evaluator.agents.evidence_agent import FilesystemEvidenceAgent
+from truthfulness_evaluator.evidence.agent import FilesystemEvidenceAgent
 
 agent = FilesystemEvidenceAgent(root_path="./src")
 evidence = await agent.search("process function accepts DataFrame")

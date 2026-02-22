@@ -14,12 +14,9 @@ class Claim(BaseModel):
     source_span: Optional[tuple[int, int]] = Field(
         default=None, description="Character span in source (start, end)"
     )
-    context: Optional[str] = Field(
-        default=None, description="Surrounding context for the claim"
-    )
+    context: Optional[str] = Field(default=None, description="Surrounding context for the claim")
     claim_type: Literal["explicit", "implicit", "inferred"] = Field(
-        default="explicit",
-        description="Type of claim"
+        default="explicit", description="Type of claim"
     )
 
     def __str__(self) -> str:

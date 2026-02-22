@@ -1,8 +1,9 @@
 site_name: Truthfulness Evaluator
 site_description: Multi-model truthfulness evaluation with filesystem-aware evidence gathering
 site_author: John Sosoka
-repo_url: https://github.com/jsosoka/truthfulness-evaluator
-repo_name: jsosoka/truthfulness-evaluator
+site_url: https://sosoka-labs.github.io/truthfulness-evaluator/
+repo_url: https://github.com/Sosoka-Labs/truthfulness-evaluator
+repo_name: Sosoka-Labs/truthfulness-evaluator
 theme:
   name: material
   palette:

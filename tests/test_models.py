@@ -2,15 +2,14 @@
 
 import pytest
 from pydantic import ValidationError
-
+from truthfulness_evaluator.core.grading import is_verified
 from truthfulness_evaluator.models import (
     Claim,
     Evidence,
-    VerificationResult,
-    TruthfulnessStatistics,
     TruthfulnessReport,
+    TruthfulnessStatistics,
+    VerificationResult,
 )
-from truthfulness_evaluator.core.grading import is_verified
 
 
 class TestClaim:

@@ -15,6 +15,7 @@ logger = get_logger()
 
 class InternalVerificationState(TypedDict):
     """State for internal verification graph."""
+
     document: str
     document_path: str
     root_path: str
@@ -42,10 +43,7 @@ async def extract_and_classify_claims_node(state: InternalVerificationState) -> 
 
     # Extract claims
     extractor = SimpleClaimExtractionChain(model=config.extraction_model)
-    claims = await extractor.extract(
-        state["document"],
-        state["document_path"]
-    )
+    claims = await extractor.extract(state["document"], state["document_path"])
 
     logger.info(f"Extracted {len(claims)} claims")
 
@@ -66,7 +64,7 @@ async def extract_and_classify_claims_node(state: InternalVerificationState) -> 
         "current_claim_index": 0,
         "verifications": [],
         "evidence_cache": {},
-        "classifications": classifications
+        "classifications": classifications,
     }
 
 
@@ -78,7 +76,10 @@ async def verify_claim_node(state: InternalVerificationState) -> dict:
         return {"verifications": [], "current_claim_index": 0}
 
     if state["current_claim_index"] >= len(state["claims"]):
-        return {"verifications": state["verifications"], "current_claim_index": state["current_claim_index"]}
+        return {
+            "verifications": state["verifications"],
+            "current_claim_index": state["current_claim_index"],
+        }
 
     claim = state["claims"][state["current_claim_index"]]
     mode = state.get("verification_mode", "external")
@@ -92,7 +93,12 @@ async def verify_claim_node(state: InternalVerificationState) -> dict:
         verification = await _verify_internal(claim, state, config)
     else:  # both
         classification = state.get("classifications", {}).get(claim.id)
-        if classification and classification.claim_type in ["api_signature", "version_requirement", "configuration", "behavioral"]:
+        if classification and classification.claim_type in [
+            "api_signature",
+            "version_requirement",
+            "configuration",
+            "behavioral",
+        ]:
             logger.debug(f"Internal verification ({classification.claim_type})")
             verification = await _verify_internal(claim, state, config)
         else:
@@ -105,11 +111,13 @@ async def verify_claim_node(state: InternalVerificationState) -> dict:
 
     return {
         "verifications": new_verifications,
-        "current_claim_index": state["current_claim_index"] + 1
+        "current_claim_index": state["current_claim_index"] + 1,
     }
 
 
-async def _verify_external(claim: Claim, state: InternalVerificationState, config: EvaluatorConfig) -> VerificationResult:
+async def _verify_external(
+    claim: Claim, state: InternalVerificationState, config: EvaluatorConfig
+) -> VerificationResult:
     """Verify using external sources (web search)."""
     from ..chains.consensus import ConsensusChain
 
@@ -117,30 +125,34 @@ async def _verify_external(claim: Claim, state: InternalVerificationState, confi
     evidence = []
     if config.enable_web_search:
         from ...evidence.tools.web_search import WebEvidenceGatherer
+
         try:
             gatherer = WebEvidenceGatherer()
             web_evidence = await gatherer.gather_evidence(claim.text, max_results=2)
             for e in web_evidence:
                 if "error" not in e:
-                    evidence.append(Evidence(
-                        source=e.get("source", "web"),
-                        source_type="web",
-                        content=e.get("content", "")[:1000],
-                        relevance_score=e.get("relevance", 0.6)
-                    ))
+                    evidence.append(
+                        Evidence(
+                            source=e.get("source", "web"),
+                            source_type="web",
+                            content=e.get("content", "")[:1000],
+                            relevance_score=e.get("relevance", 0.6),
+                        )
+                    )
         except Exception as e:
             logger.warning(f"Web search failed: {e}")
 
     # Verify with consensus
     consensus = ConsensusChain(
-        model_names=config.verification_models,
-        confidence_threshold=config.confidence_threshold
+        model_names=config.verification_models, confidence_threshold=config.confidence_threshold
     )
 
     return await consensus.verify(claim, evidence)
 
 
-async def _verify_internal(claim: Claim, state: InternalVerificationState, config: EvaluatorConfig) -> VerificationResult:
+async def _verify_internal(
+    claim: Claim, state: InternalVerificationState, config: EvaluatorConfig
+) -> VerificationResult:
     """Verify using internal codebase."""
     from ..chains.internal_verification import ClaimClassifier, InternalVerificationChain
 
@@ -151,7 +163,7 @@ async def _verify_internal(claim: Claim, state: InternalVerificationState, confi
             confidence=0.0,
             evidence=[],
             explanation="No root_path provided for internal verification",
-            model_votes={}
+            model_votes={},
         )
 
     # Classify if not already done
@@ -162,8 +174,7 @@ async def _verify_internal(claim: Claim, state: InternalVerificationState, confi
 
     # Verify internally
     internal_verifier = InternalVerificationChain(
-        root_path=state["root_path"],
-        model=config.verification_models[0]  # Use first model
+        root_path=state["root_path"], model=config.verification_models[0]  # Use first model
     )
 
     return await internal_verifier.verify(claim, classification)
@@ -209,10 +220,7 @@ def create_internal_verification_graph():
     builder.add_conditional_edges(
         "verify_claim",
         should_continue,
-        {
-            "verify_claim": "verify_claim",
-            "generate_report": "generate_report"
-        }
+        {"verify_claim": "verify_claim", "generate_report": "generate_report"},
     )
 
     builder.add_edge("generate_report", END)

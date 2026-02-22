@@ -105,7 +105,7 @@ Shared utilities and configuration. Includes `EvaluatorConfig` (Pydantic setting
 The system uses Python's structural typing (`Protocol`) to define interfaces without requiring inheritance. Adapters satisfy protocols by implementing the required methods, enabling duck-typed composition and testing.
 
 ```python
-from truthfulness_evaluator.protocols import ClaimExtractor
+from truthfulness_evaluator.core.protocols import ClaimExtractor
 
 class CustomExtractor:
     async def extract(self, document: str, source_path: str, **kwargs) -> list[Claim]:
@@ -161,7 +161,7 @@ chain = prompt | llm.with_structured_output(ClaimExtractionOutput)
 The `core.llm.create_chat_model()` factory abstracts provider differences (OpenAI, Anthropic) and handles model routing, API key management, and configuration:
 
 ```python
-from truthfulness_evaluator.core.llm import create_chat_model
+from truthfulness_evaluator.llm.factory import create_chat_model
 
 llm = create_chat_model("gpt-4o")  # Returns ChatOpenAI instance
 llm = create_chat_model("claude-sonnet-4-5")  # Returns ChatAnthropic instance

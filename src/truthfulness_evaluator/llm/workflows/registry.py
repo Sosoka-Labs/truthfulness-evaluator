@@ -62,9 +62,7 @@ class WorkflowRegistry:
         cls._discover_plugins()
         if name not in cls._workflows:
             available = ", ".join(sorted(cls._workflows.keys()))
-            raise KeyError(
-                f"Unknown workflow '{name}'. Available: {available}"
-            )
+            raise KeyError(f"Unknown workflow '{name}'. Available: {available}")
         return cls._workflows[name]
 
     @classmethod
@@ -75,10 +73,7 @@ class WorkflowRegistry:
             Dict of name -> description.
         """
         cls._discover_plugins()
-        return {
-            name: config.description
-            for name, config in sorted(cls._workflows.items())
-        }
+        return {name: config.description for name, config in sorted(cls._workflows.items())}
 
     @classmethod
     def _discover_plugins(cls) -> None:
@@ -89,6 +84,7 @@ class WorkflowRegistry:
 
         try:
             from importlib.metadata import entry_points
+
             eps = entry_points(group="truthfulness_evaluator.workflows")
             for ep in eps:
                 try:

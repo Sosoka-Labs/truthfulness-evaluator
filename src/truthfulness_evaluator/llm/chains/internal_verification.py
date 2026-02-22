@@ -18,6 +18,7 @@ logger = get_logger()
 # Structured output models
 class ClaimClassification(BaseModel):
     """Classification of claim type."""
+
     claim_type: str = Field(
         description="Type: external_fact, api_signature, version_requirement, configuration, behavioral, or unknown"
     )
@@ -27,6 +28,7 @@ class ClaimClassification(BaseModel):
 
 class InternalVerificationOutput(BaseModel):
     """Output for internal verification."""
+
     verdict: str = Field(description="SUPPORTS, REFUTES, or NOT_ENOUGH_INFO")
     confidence: float = Field(description="Confidence 0.0-1.0")
     reasoning: str = Field(description="Detailed explanation")
@@ -51,8 +53,11 @@ class ClaimClassifier:
     async def classify(self, claim: Claim) -> ClaimClassification:
         """Determine if claim is about external facts or internal implementation."""
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """Classify this claim as one of:
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """Classify this claim as one of:
 
 1. external_fact - About history, science, general knowledge (verifiable online)
 2. api_signature - About function/method signatures, parameters, return types
@@ -74,9 +79,11 @@ Examples:
 - "Supports web search and filesystem evidence" → behavioral
 - "Uses Pydantic for data validation" → behavioral
 
-Respond with classification and confidence."""),
-            ("user", "Claim: {claim}")
-        ])
+Respond with classification and confidence.""",
+                ),
+                ("user", "Claim: {claim}"),
+            ]
+        )
 
         chain = prompt | self.llm
         return await chain.ainvoke({"claim": claim.text})
@@ -105,7 +112,9 @@ class InternalVerificationChain:
 
         # If confidence is low or verdict is REFUTES, get second opinion
         if result.confidence < 0.7 or result.verdict == "REFUTES":
-            logger.debug(f"Low confidence ({result.confidence:.0%}) or REFUTES — getting second opinion")
+            logger.debug(
+                f"Low confidence ({result.confidence:.0%}) or REFUTES — getting second opinion"
+            )
 
             # Use different model for second opinion
             second_model = "gpt-4o" if "gpt-4o-mini" in self.model else "gpt-4o-mini"
@@ -119,7 +128,9 @@ class InternalVerificationChain:
                 result.confidence = min(result.confidence, 1.0)
                 result.model_votes[self.model] = result.verdict
                 result.model_votes[second_model] = result2.verdict
-                result.explanation += f"\n\nSecond opinion ({second_model}): AGREES - {result2.explanation[:200]}"
+                result.explanation += (
+                    f"\n\nSecond opinion ({second_model}): AGREES - {result2.explanation[:200]}"
+                )
             else:
                 # Disagreement - conservative NEI
                 result.verdict = "NOT_ENOUGH_INFO"
@@ -130,7 +141,9 @@ class InternalVerificationChain:
 
         return result
 
-    async def _verify_single_model(self, claim: Claim, classification: ClaimClassification) -> VerificationResult:
+    async def _verify_single_model(
+        self, claim: Claim, classification: ClaimClassification
+    ) -> VerificationResult:
         """Verify with single model (internal method)."""
 
         if classification.claim_type == "api_signature":
@@ -164,8 +177,11 @@ class InternalVerificationChain:
             return self._nei_result(claim, f"Function '{function_name}' not found in codebase")
 
         # Use LLM to compare claim against implementation
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """Compare the documentation claim against the actual implementation.
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """Compare the documentation claim against the actual implementation.
 
 Determine if the claim accurately describes the implementation.
 
@@ -174,26 +190,30 @@ Respond with:
 - confidence: 0.0-1.0
 - reasoning: Detailed comparison
 - actual_implementation: Brief description of what was found
-- discrepancy: Specific differences if REFUTES"""),
-            ("user", """Documentation claim: {claim}
+- discrepancy: Specific differences if REFUTES""",
+                ),
+                (
+                    "user",
+                    """Documentation claim: {claim}
 
 Actual implementation:
 {implementation}
 
-Compare and verify.""")
-        ])
+Compare and verify.""",
+                ),
+            ]
+        )
 
         chain = prompt | self.llm
-        result: InternalVerificationOutput = await chain.ainvoke({
-            "claim": claim.text,
-            "implementation": implementation
-        })
+        result: InternalVerificationOutput = await chain.ainvoke(
+            {"claim": claim.text, "implementation": implementation}
+        )
 
         evidence = Evidence(
             source=str(self.root_path / f"{function_name}_implementation"),
             source_type="filesystem",
             content=implementation[:1000],
-            relevance_score=1.0 if result.verdict == "SUPPORTS" else 0.5
+            relevance_score=1.0 if result.verdict == "SUPPORTS" else 0.5,
         )
 
         return VerificationResult(
@@ -201,8 +221,13 @@ Compare and verify.""")
             verdict=result.verdict,
             confidence=result.confidence,
             evidence=[evidence],
-            explanation=result.reasoning + (f"\n\nActual: {result.actual_implementation}" if result.actual_implementation else ""),
-            model_votes={self.model: result.verdict}
+            explanation=result.reasoning
+            + (
+                f"\n\nActual: {result.actual_implementation}"
+                if result.actual_implementation
+                else ""
+            ),
+            model_votes={self.model: result.verdict},
         )
 
     async def _verify_version_claim(self, claim: Claim) -> VerificationResult:
@@ -243,28 +268,35 @@ Compare and verify.""")
         # Compare claim against found versions
         versions_text = "\n".join([f"{f}: {v}" for f, v in found_versions])
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "Compare the claimed version requirement against actual configuration files."),
-            ("user", """Claim: {claim}
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "Compare the claimed version requirement against actual configuration files.",
+                ),
+                (
+                    "user",
+                    """Claim: {claim}
 
 Found in config files:
 {versions}
 
-Does the claim match?""")
-        ])
+Does the claim match?""",
+                ),
+            ]
+        )
 
         chain = prompt | self.llm
-        result: InternalVerificationOutput = await chain.ainvoke({
-            "claim": claim.text,
-            "versions": versions_text
-        })
+        result: InternalVerificationOutput = await chain.ainvoke(
+            {"claim": claim.text, "versions": versions_text}
+        )
 
         evidence = [
             Evidence(
                 source=str(self.root_path / f),
                 source_type="filesystem",
                 content=v[:500],
-                relevance_score=1.0
+                relevance_score=1.0,
             )
             for f, v in found_versions
         ]
@@ -275,7 +307,7 @@ Does the claim match?""")
             confidence=result.confidence,
             evidence=evidence,
             explanation=result.reasoning,
-            model_votes={self.model: result.verdict}
+            model_votes={self.model: result.verdict},
         )
 
     async def _verify_config_claim(self, claim: Claim) -> VerificationResult:
@@ -294,14 +326,14 @@ Does the claim match?""")
                 "src/config.py",
                 "config.py",
                 "settings.py",
-                "pyproject.toml"
+                "pyproject.toml",
             ]
         elif "threshold" in claim_lower or "confidence" in claim_lower:
             priority_files = [
                 "src/truthfulness_evaluator/config.py",
                 "config.py",
                 "settings.yaml",
-                "pyproject.toml"
+                "pyproject.toml",
             ]
         else:
             # Generic config search
@@ -309,7 +341,7 @@ Does the claim match?""")
                 "src/**/config.py",
                 "src/**/settings.py",
                 "config.yaml",
-                "config.json"
+                "config.json",
             ]
 
         config_files = []
@@ -341,28 +373,32 @@ Does the claim match?""")
 
         configs_text = "\n\n".join(configs)
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "Verify if the configuration claim matches the actual config files."),
-            ("user", """Claim: {claim}
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", "Verify if the configuration claim matches the actual config files."),
+                (
+                    "user",
+                    """Claim: {claim}
 
 Config files:
 {configs}
 
-Does the claim match the configuration?""")
-        ])
+Does the claim match the configuration?""",
+                ),
+            ]
+        )
 
         chain = prompt | self.llm
-        result: InternalVerificationOutput = await chain.ainvoke({
-            "claim": claim.text,
-            "configs": configs_text
-        })
+        result: InternalVerificationOutput = await chain.ainvoke(
+            {"claim": claim.text, "configs": configs_text}
+        )
 
         evidence = [
             Evidence(
                 source=str(f),
                 source_type="filesystem",
                 content=f.read_text()[:500] if f.exists() else "",
-                relevance_score=0.9
+                relevance_score=0.9,
             )
             for f in config_files[:3]
         ]
@@ -373,7 +409,7 @@ Does the claim match the configuration?""")
             confidence=result.confidence,
             evidence=evidence,
             explanation=result.reasoning,
-            model_votes={self.model: result.verdict}
+            model_votes={self.model: result.verdict},
         )
 
     async def _verify_behavioral_claim(self, claim: Claim) -> VerificationResult:
@@ -403,7 +439,9 @@ Does the claim match the configuration?""")
         # If no specific patterns, extract key nouns
         if not matched_patterns:
             words = claim_lower.split()
-            keywords = [w for w in words if len(w) > 4 and w not in ["the", "tool", "uses", "with", "from"]]
+            keywords = [
+                w for w in words if len(w) > 4 and w not in ["the", "tool", "uses", "with", "from"]
+            ]
             matched_patterns = keywords[:3]
 
         # Search codebase for evidence
@@ -434,7 +472,7 @@ Does the claim match the configuration?""")
                     source_type="filesystem",
                     content=f"Contains implementation of: {', '.join(matched_patterns[:3])}",
                     relevance_score=0.8,
-                    supports_claim=True
+                    supports_claim=True,
                 )
                 for f in found_files
             ]
@@ -445,19 +483,21 @@ Does the claim match the configuration?""")
                 confidence=0.7,
                 evidence=evidence,
                 explanation=f"Found implementation evidence in {len(found_files)} files: {', '.join(str(f.name) for f in found_files)}",
-                model_votes={self.model: "SUPPORTS"}
+                model_votes={self.model: "SUPPORTS"},
             )
 
-        return self._nei_result(claim, f"Could not find implementation evidence for keywords: {matched_patterns[:3]}")
+        return self._nei_result(
+            claim, f"Could not find implementation evidence for keywords: {matched_patterns[:3]}"
+        )
 
     def _extract_function_name(self, claim_text: str) -> Optional[str]:
         """Extract function/method name from claim text."""
         # Look for patterns like "The process() function", "process() accepts", etc.
         patterns = [
-            r'The\s+(\w+)\s*\(\)\s+function',
-            r'(\w+)\s*\(\)\s+(?:accepts|returns|takes)',
-            r'function\s+(\w+)\s*\(',
-            r'method\s+(\w+)\s*\(',
+            r"The\s+(\w+)\s*\(\)\s+function",
+            r"(\w+)\s*\(\)\s+(?:accepts|returns|takes)",
+            r"function\s+(\w+)\s*\(",
+            r"method\s+(\w+)\s*\(",
         ]
 
         for pattern in patterns:
@@ -473,17 +513,18 @@ Does the claim match the configuration?""")
         matches = []
 
         # Search Python files (prioritize src/ directory)
-        search_paths = [
-            self.root_path / "src",
-            self.root_path
-        ]
+        search_paths = [self.root_path / "src", self.root_path]
 
         for search_path in search_paths:
             if not search_path.exists():
                 continue
 
             for py_file in search_path.rglob("*.py"):
-                if ".venv" in str(py_file) or "__pycache__" in str(py_file) or ".git" in str(py_file):
+                if (
+                    ".venv" in str(py_file)
+                    or "__pycache__" in str(py_file)
+                    or ".git" in str(py_file)
+                ):
                     continue
 
                 try:
@@ -493,17 +534,26 @@ Does the claim match the configuration?""")
                     try:
                         tree = ast.parse(content)
                         for node in ast.walk(tree):
-                            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == function_name:
+                            if (
+                                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                                and node.name == function_name
+                            ):
                                 # Extract function source
-                                lines = content.split('\n')
+                                lines = content.split("\n")
                                 start_line = node.lineno - 1
-                                end_line = node.end_lineno if hasattr(node, 'end_lineno') else start_line + 20
-                                func_source = '\n'.join(lines[start_line:end_line])
+                                end_line = (
+                                    node.end_lineno
+                                    if hasattr(node, "end_lineno")
+                                    else start_line + 20
+                                )
+                                func_source = "\n".join(lines[start_line:end_line])
 
                                 # Also get docstring if available
                                 docstring = ast.get_docstring(node)
 
-                                result = f"File: {py_file.relative_to(self.root_path)}\n\n{func_source}"
+                                result = (
+                                    f"File: {py_file.relative_to(self.root_path)}\n\n{func_source}"
+                                )
                                 if docstring:
                                     result += f"\n\nDocstring: {docstring[:500]}"
 
@@ -513,14 +563,20 @@ Does the claim match the configuration?""")
 
                     # Fallback: regex search for function definition
                     if not matches:
-                        pattern = rf'(?:async\s+)?def\s+{re.escape(function_name)}\s*\([^)]*\)(?:\s*->\s*[^:]+)?:'
+                        pattern = rf"(?:async\s+)?def\s+{re.escape(function_name)}\s*\([^)]*\)(?:\s*->\s*[^:]+)?:"
                         match = re.search(pattern, content)
                         if match:
                             start = match.start()
                             # Extract ~30 lines after match
-                            lines = content[start:].split('\n')[:30]
-                            snippet = '\n'.join(lines)
-                            matches.append((py_file, f"File: {py_file.relative_to(self.root_path)}\n\n{snippet}", len(snippet)))
+                            lines = content[start:].split("\n")[:30]
+                            snippet = "\n".join(lines)
+                            matches.append(
+                                (
+                                    py_file,
+                                    f"File: {py_file.relative_to(self.root_path)}\n\n{snippet}",
+                                    len(snippet),
+                                )
+                            )
 
                 except Exception:
                     continue
@@ -538,11 +594,11 @@ Does the claim match the configuration?""")
             # Look for requires-python
             match = re.search(r'requires-python\s*=\s*"([^"]+)"', content)
             if match:
-                return f"requires-python = \"{match.group(1)}\""
+                return f'requires-python = "{match.group(1)}"'
             # Look for version
             match = re.search(r'version\s*=\s*"([^"]+)"', content)
             if match:
-                return f"version = \"{match.group(1)}\""
+                return f'version = "{match.group(1)}"'
 
         elif filename == "setup.py":
             match = re.search(r'python_requires\s*=\s*["\']([^"\']+)["\']', content)
@@ -564,5 +620,5 @@ Does the claim match the configuration?""")
             confidence=0.0,
             evidence=[],
             explanation=explanation,
-            model_votes={self.model: "NOT_ENOUGH_INFO"}
+            model_votes={self.model: "NOT_ENOUGH_INFO"},
         )

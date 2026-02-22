@@ -1,15 +1,12 @@
 """Tests for truthfulness_evaluator.reporting module."""
 
 import json
-from pathlib import Path
-
-import pytest
 
 from truthfulness_evaluator.models import (
     Claim,
     Evidence,
-    VerificationResult,
     TruthfulnessReport,
+    VerificationResult,
 )
 from truthfulness_evaluator.reporting import ReportGenerator, generate_report
 
@@ -171,12 +168,8 @@ class TestReportGeneratorMarkdown:
             Claim(id="c3", text="Claim 3", source_document="test.txt"),
         ]
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"
-            ),
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"),
+            VerificationResult(claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"),
             VerificationResult(
                 claim_id="c3", verdict="NOT_ENOUGH_INFO", confidence=0.5, explanation="ok"
             ),
@@ -408,12 +401,8 @@ class TestReportGeneratorHTML:
             Claim(id="c2", text="Claim 2", source_document="test.txt"),
         ]
         verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"
-            ),
+            VerificationResult(claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"),
+            VerificationResult(claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"),
         ]
         report = build_report(
             source_document="test.txt",
@@ -627,9 +616,7 @@ class TestReportGeneratorSave:
         content = output_path.read_text()
         assert "<!DOCTYPE html>" in content
 
-    def test_save_default_format_when_unknown_extension(
-        self, sample_truthfulness_report, temp_dir
-    ):
+    def test_save_default_format_when_unknown_extension(self, sample_truthfulness_report, temp_dir):
         """Test that unknown extensions default to markdown."""
         generator = ReportGenerator(sample_truthfulness_report)
         output_path = temp_dir / "report.xyz"
@@ -698,9 +685,7 @@ class TestGenerateReport:
 
         assert "# Truthfulness Evaluation Report" in output
 
-    def test_generate_report_unknown_format_defaults_to_markdown(
-        self, sample_truthfulness_report
-    ):
+    def test_generate_report_unknown_format_defaults_to_markdown(self, sample_truthfulness_report):
         """Test that unknown format defaults to markdown."""
         output = generate_report(sample_truthfulness_report, format="unknown")
 

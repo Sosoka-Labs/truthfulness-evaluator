@@ -17,7 +17,7 @@ class ConsensusChain:
         self,
         model_names: list[str],
         weights: dict[str, float] | None = None,
-        confidence_threshold: float = 0.7
+        confidence_threshold: float = 0.7,
     ):
         self.model_names = model_names
         self.weights = weights or {m: 1.0 / len(model_names) for m in model_names}
@@ -34,10 +34,7 @@ class ConsensusChain:
     async def verify(self, claim: Claim, evidence: list[Evidence]) -> VerificationResult:
         """Verify claim using multi-model consensus."""
         # Get votes from all models in parallel
-        results = await asyncio.gather(*[
-            chain.verify(claim, evidence)
-            for chain in self.chains
-        ])
+        results = await asyncio.gather(*[chain.verify(claim, evidence) for chain in self.chains])
 
         # Collect votes and confidences
         votes = {}
@@ -80,12 +77,8 @@ class ConsensusChain:
             verdict=final_verdict,
             confidence=avg_confidence,
             evidence=all_evidence[:5],  # Deduplicate and limit
-            explanation="\n".join([
-                f"Consensus: {final_verdict}",
-                "Model votes:",
-                *explanations
-            ]),
-            model_votes=votes
+            explanation="\n".join([f"Consensus: {final_verdict}", "Model votes:", *explanations]),
+            model_votes=votes,
         )
 
 
@@ -93,10 +86,7 @@ class ICEConsensusChain:
     """Iterative Consensus Ensemble - models critique each other."""
 
     def __init__(
-        self,
-        model_names: list[str],
-        max_rounds: int = 3,
-        confidence_threshold: float = 0.7
+        self, model_names: list[str], max_rounds: int = 3, confidence_threshold: float = 0.7
     ):
         self.model_names = model_names
         self.max_rounds = max_rounds
@@ -114,10 +104,7 @@ class ICEConsensusChain:
         """Verify claim using ICE (Iterative Consensus Ensemble)."""
 
         # Round 1: Initial votes
-        results = await asyncio.gather(*[
-            chain.verify(claim, evidence)
-            for chain in self.chains
-        ])
+        results = await asyncio.gather(*[chain.verify(claim, evidence) for chain in self.chains])
 
         votes = {self.model_names[i]: r.verdict for i, r in enumerate(results)}
 
@@ -130,10 +117,12 @@ class ICEConsensusChain:
             critiques = await self._gather_critiques(claim, evidence, votes, round_num)
 
             # Revise votes based on critiques
-            new_results = await asyncio.gather(*[
-                self._revise_vote(chain, claim, evidence, votes, critiques, round_num)
-                for chain in self.chains
-            ])
+            new_results = await asyncio.gather(
+                *[
+                    self._revise_vote(chain, claim, evidence, votes, critiques, round_num)
+                    for chain in self.chains
+                ]
+            )
 
             votes = {self.model_names[i]: r.verdict for i, r in enumerate(new_results)}
 
@@ -145,11 +134,7 @@ class ICEConsensusChain:
         return len(set(votes.values())) == 1
 
     async def _gather_critiques(
-        self,
-        claim: Claim,
-        evidence: list[Evidence],
-        votes: dict[str, Verdict],
-        round_num: int
+        self, claim: Claim, evidence: list[Evidence], votes: dict[str, Verdict], round_num: int
     ) -> dict[str, str]:
         """Gather critiques from each model about others' reasoning."""
         # Simplified - in full implementation, each model critiques others
@@ -162,7 +147,7 @@ class ICEConsensusChain:
         evidence: list[Evidence],
         current_votes: dict[str, Verdict],
         critiques: dict[str, str],
-        round_num: int
+        round_num: int,
     ) -> VerificationResult:
         """Revise vote based on critiques."""
         # For now, just re-verify (full implementation would incorporate critiques)
@@ -173,7 +158,7 @@ class ICEConsensusChain:
         claim: Claim,
         votes: dict[str, Verdict],
         results: list[VerificationResult],
-        evidence: list[Evidence]
+        evidence: list[Evidence],
     ) -> VerificationResult:
         """Aggregate final results."""
         # Simple majority vote
@@ -192,5 +177,5 @@ class ICEConsensusChain:
             confidence=avg_confidence,
             evidence=evidence,
             explanation=f"ICE Consensus after up to {self.max_rounds} rounds",
-            model_votes=votes
+            model_votes=votes,
         )

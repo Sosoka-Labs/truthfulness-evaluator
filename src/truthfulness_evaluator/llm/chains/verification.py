@@ -12,6 +12,7 @@ from ..prompts.verification import VERIFICATION_PROMPT
 # Structured output models
 class VerificationOutput(BaseModel):
     """Structured output for claim verification."""
+
     verdict: str = Field(description="Verdict: SUPPORTS, REFUTES, or NOT_ENOUGH_INFO")
     confidence: float = Field(description="Confidence score from 0.0 to 1.0")
     reasoning: str = Field(description="Detailed explanation of the verdict")
@@ -63,10 +64,9 @@ class VerificationChain:
         chain = VERIFICATION_PROMPT | self.llm
 
         try:
-            result: VerificationOutput = await chain.ainvoke({
-                "claim": claim.text,
-                "evidence": evidence_text
-            })
+            result: VerificationOutput = await chain.ainvoke(
+                {"claim": claim.text, "evidence": evidence_text}
+            )
 
             # Normalize verdict
             verdict = result.verdict.upper()
@@ -89,7 +89,7 @@ class VerificationChain:
                 confidence=confidence,
                 evidence=evidence,
                 explanation=full_explanation,
-                model_votes={self.model_name: verdict}
+                model_votes={self.model_name: verdict},
             )
 
         except Exception as e:
@@ -100,5 +100,5 @@ class VerificationChain:
                 confidence=0.0,
                 evidence=evidence,
                 explanation=f"Verification failed: {str(e)}",
-                model_votes={self.model_name: "NOT_ENOUGH_INFO"}
+                model_votes={self.model_name: "NOT_ENOUGH_INFO"},
             )

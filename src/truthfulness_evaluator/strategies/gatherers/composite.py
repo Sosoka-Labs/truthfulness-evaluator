@@ -47,9 +47,7 @@ class CompositeGatherer:
         all_evidence: list[Evidence] = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                logger.warning(
-                    f"Gatherer {self._gatherers[i].__class__.__name__} failed: {result}"
-                )
+                logger.warning(f"Gatherer {self._gatherers[i].__class__.__name__} failed: {result}")
                 continue
             all_evidence.extend(result)
 

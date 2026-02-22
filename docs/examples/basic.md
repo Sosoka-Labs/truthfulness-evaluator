@@ -74,7 +74,7 @@ jobs:
 ```python
 import asyncio
 from truthfulness_evaluator import create_truthfulness_graph
-from truthfulness_evaluator.config import EvaluatorConfig
+from truthfulness_evaluator.core.config import EvaluatorConfig
 
 async def verify_docs():
     graph = create_truthfulness_graph()
