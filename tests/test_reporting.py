@@ -86,6 +86,8 @@ class TestReportGeneratorJSON:
 
     def test_to_json_includes_evidence(self):
         """Test that evidence is included in JSON output."""
+        from truthfulness_evaluator.core.grading import build_report
+
         evidence = Evidence(
             source="https://example.com",
             source_type="web",
@@ -100,8 +102,9 @@ class TestReportGeneratorJSON:
             evidence=[evidence],
             explanation="Test explanation",
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
+            claims=[],
             verifications=[verification],
         )
 
@@ -160,6 +163,8 @@ class TestReportGeneratorMarkdown:
 
     def test_to_markdown_includes_verdict_emojis(self):
         """Test that markdown includes emoji for verdicts."""
+        from truthfulness_evaluator.core.grading import build_report
+
         claims = [
             Claim(id="c1", text="Claim 1", source_document="test.txt"),
             Claim(id="c2", text="Claim 2", source_document="test.txt"),
@@ -176,7 +181,7 @@ class TestReportGeneratorMarkdown:
                 claim_id="c3", verdict="NOT_ENOUGH_INFO", confidence=0.5, explanation="ok"
             ),
         ]
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=claims,
             verifications=verifications,
@@ -192,6 +197,8 @@ class TestReportGeneratorMarkdown:
 
     def test_to_markdown_includes_model_votes(self):
         """Test that markdown includes model votes when present."""
+        from truthfulness_evaluator.core.grading import build_report
+
         verification = VerificationResult(
             claim_id="c1",
             verdict="SUPPORTS",
@@ -203,7 +210,7 @@ class TestReportGeneratorMarkdown:
             },
         )
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -216,6 +223,8 @@ class TestReportGeneratorMarkdown:
 
     def test_to_markdown_includes_evidence(self):
         """Test that markdown includes evidence when present."""
+        from truthfulness_evaluator.core.grading import build_report
+
         evidence = Evidence(
             source="https://example.com/article.html",
             source_type="web",
@@ -230,7 +239,7 @@ class TestReportGeneratorMarkdown:
             explanation="ok",
         )
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -244,6 +253,8 @@ class TestReportGeneratorMarkdown:
 
     def test_to_markdown_includes_explanation(self):
         """Test that markdown includes explanation."""
+        from truthfulness_evaluator.core.grading import build_report
+
         verification = VerificationResult(
             claim_id="c1",
             verdict="SUPPORTS",
@@ -251,7 +262,7 @@ class TestReportGeneratorMarkdown:
             explanation="This is a detailed explanation of why the claim is supported.",
         )
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -265,6 +276,8 @@ class TestReportGeneratorMarkdown:
 
     def test_to_markdown_truncates_long_explanation(self):
         """Test that very long explanations are truncated."""
+        from truthfulness_evaluator.core.grading import build_report
+
         long_explanation = "x" * 600
         verification = VerificationResult(
             claim_id="c1",
@@ -273,7 +286,7 @@ class TestReportGeneratorMarkdown:
             explanation=long_explanation,
         )
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -365,6 +378,8 @@ class TestReportGeneratorHTML:
 
     def test_to_html_includes_claim_cards(self):
         """Test that HTML includes claim cards."""
+        from truthfulness_evaluator.core.grading import build_report
+
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
         verification = VerificationResult(
             claim_id="c1",
@@ -372,7 +387,7 @@ class TestReportGeneratorHTML:
             confidence=0.9,
             explanation="Test explanation",
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -386,6 +401,8 @@ class TestReportGeneratorHTML:
 
     def test_to_html_includes_verdict_badges(self):
         """Test that HTML includes verdict badges."""
+        from truthfulness_evaluator.core.grading import build_report
+
         claims = [
             Claim(id="c1", text="Claim 1", source_document="test.txt"),
             Claim(id="c2", text="Claim 2", source_document="test.txt"),
@@ -398,7 +415,7 @@ class TestReportGeneratorHTML:
                 claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"
             ),
         ]
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=claims,
             verifications=verifications,
@@ -414,6 +431,8 @@ class TestReportGeneratorHTML:
 
     def test_to_html_includes_confidence_percentage(self):
         """Test that HTML shows confidence as percentage."""
+        from truthfulness_evaluator.core.grading import build_report
+
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
         verification = VerificationResult(
             claim_id="c1",
@@ -421,7 +440,7 @@ class TestReportGeneratorHTML:
             confidence=0.87,
             explanation="ok",
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -434,6 +453,8 @@ class TestReportGeneratorHTML:
 
     def test_to_html_includes_evidence_section(self):
         """Test that HTML includes evidence section when present."""
+        from truthfulness_evaluator.core.grading import build_report
+
         evidence = Evidence(
             source="/path/to/file.txt",
             source_type="filesystem",
@@ -448,7 +469,7 @@ class TestReportGeneratorHTML:
             evidence=[evidence],
             explanation="ok",
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -462,6 +483,8 @@ class TestReportGeneratorHTML:
 
     def test_to_html_includes_explanation(self):
         """Test that HTML includes explanation section."""
+        from truthfulness_evaluator.core.grading import build_report
+
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
         verification = VerificationResult(
             claim_id="c1",
@@ -469,7 +492,7 @@ class TestReportGeneratorHTML:
             confidence=0.9,
             explanation="This is the explanation of the verdict.",
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -483,6 +506,8 @@ class TestReportGeneratorHTML:
 
     def test_to_html_truncates_long_explanation(self):
         """Test that HTML truncates very long explanations."""
+        from truthfulness_evaluator.core.grading import build_report
+
         long_explanation = "x" * 400
         claim = Claim(id="c1", text="Test claim", source_document="test.txt")
         verification = VerificationResult(
@@ -491,7 +516,7 @@ class TestReportGeneratorHTML:
             confidence=0.9,
             explanation=long_explanation,
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],
@@ -616,6 +641,8 @@ class TestReportGeneratorSave:
 
     def test_save_creates_utf8_file(self, sample_truthfulness_report, temp_dir):
         """Test that saved file uses UTF-8 encoding."""
+        from truthfulness_evaluator.core.grading import build_report
+
         # Create a report with unicode characters — need a matching verification
         # so the claim appears in the Detailed Results section
         claim = Claim(id="c1", text="Test émojis: ✅ ❌ 🎉", source_document="test.txt")
@@ -625,7 +652,7 @@ class TestReportGeneratorSave:
             confidence=0.9,
             explanation="ok",
         )
-        report = TruthfulnessReport(
+        report = build_report(
             source_document="test.txt",
             claims=[claim],
             verifications=[verification],

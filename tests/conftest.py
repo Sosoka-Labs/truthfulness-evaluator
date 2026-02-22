@@ -10,7 +10,7 @@ from truthfulness_evaluator.models import (
     TruthfulnessReport,
     TruthfulnessStatistics,
 )
-from truthfulness_evaluator.config import EvaluatorConfig
+from truthfulness_evaluator.core.config import EvaluatorConfig
 
 
 @pytest.fixture
@@ -134,7 +134,9 @@ def sample_truthfulness_report(
     sample_verification_result_supports: VerificationResult,
 ) -> TruthfulnessReport:
     """Create a complete truthfulness report."""
-    return TruthfulnessReport(
+    from truthfulness_evaluator.core.grading import build_report
+
+    return build_report(
         source_document="/path/to/document.txt",
         claims=[sample_claim],
         verifications=[sample_verification_result_supports],
@@ -144,7 +146,9 @@ def sample_truthfulness_report(
 @pytest.fixture
 def empty_truthfulness_report() -> TruthfulnessReport:
     """Create an empty truthfulness report."""
-    return TruthfulnessReport(
+    from truthfulness_evaluator.core.grading import build_report
+
+    return build_report(
         source_document="empty.txt",
         claims=[],
         verifications=[],

@@ -10,9 +10,10 @@ try:
 except ImportError:
     REFCHECKER_AVAILABLE = False
 
+from ..core.llm import create_chat_model
 from ..models import Claim
 from ..prompts.extraction import CLAIM_EXTRACTION_PROMPT, TRIPLET_EXTRACTION_PROMPT
-from ..logging_config import get_logger
+from ..core.logging_config import get_logger
 
 logger = get_logger()
 
@@ -129,8 +130,7 @@ class SimpleClaimExtractionChain:
     def llm(self):
         """Lazy initialization of LLM with structured output."""
         if self._llm is None:
-            from langchain_openai import ChatOpenAI
-            base_llm = ChatOpenAI(model=self.model, temperature=0)
+            base_llm = create_chat_model(self.model, temperature=0)
             # Use structured output
             self._llm = base_llm.with_structured_output(ClaimExtractionOutput)
         return self._llm
@@ -170,17 +170,16 @@ class SimpleClaimExtractionChain:
 
 class TripletExtractionChain:
     """Extract claims as subject-relation-object triplets using structured output."""
-    
+
     def __init__(self, model: str = "gpt-4o-mini"):
         self.model = model
         self._llm = None
-    
+
     @property
     def llm(self):
         """Lazy initialization of LLM with structured output."""
         if self._llm is None:
-            from langchain_openai import ChatOpenAI
-            base_llm = ChatOpenAI(model=self.model, temperature=0)
+            base_llm = create_chat_model(self.model, temperature=0)
             self._llm = base_llm.with_structured_output(TripletExtractionOutput)
         return self._llm
     

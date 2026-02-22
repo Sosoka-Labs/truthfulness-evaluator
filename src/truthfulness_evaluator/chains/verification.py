@@ -3,9 +3,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-
+from ..core.llm import create_chat_model
 from ..models import Claim, Evidence, VerificationResult, Verdict
 from ..prompts.verification import VERIFICATION_PROMPT
 
@@ -30,10 +28,7 @@ class VerificationChain:
     def llm(self):
         """Lazy initialization of LLM with structured output."""
         if self._llm is None:
-            if "claude" in self.model_name.lower():
-                base_llm = ChatAnthropic(model=self.model_name, temperature=0)
-            else:
-                base_llm = ChatOpenAI(model=self.model_name, temperature=0)
+            base_llm = create_chat_model(self.model_name, temperature=0)
             # Use structured output
             self._llm = base_llm.with_structured_output(VerificationOutput)
         return self._llm

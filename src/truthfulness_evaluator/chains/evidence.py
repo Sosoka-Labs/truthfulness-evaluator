@@ -4,8 +4,8 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 
+from ..core.llm import create_chat_model
 from ..models import Evidence, Claim
 from ..prompts.verification import EVIDENCE_ANALYSIS_PROMPT
 
@@ -37,7 +37,7 @@ class EvidenceProcessor:
     def llm(self):
         """Lazy initialization of LLM with structured output."""
         if self._llm is None:
-            base_llm = ChatOpenAI(model=self.model, temperature=0)
+            base_llm = create_chat_model(self.model, temperature=0)
             self._llm = base_llm.with_structured_output(EvidenceAnalysisOutput)
         return self._llm
     

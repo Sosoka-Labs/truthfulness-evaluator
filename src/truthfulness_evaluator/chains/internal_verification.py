@@ -7,10 +7,10 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 
+from ..core.llm import create_chat_model
 from ..models import Claim, VerificationResult, Evidence
-from ..logging_config import get_logger
+from ..core.logging_config import get_logger
 
 logger = get_logger()
 
@@ -44,7 +44,7 @@ class ClaimClassifier:
     @property
     def llm(self):
         if self._llm is None:
-            base = ChatOpenAI(model=self.model, temperature=0)
+            base = create_chat_model(self.model, temperature=0)
             self._llm = base.with_structured_output(ClaimClassification)
         return self._llm
     
@@ -67,6 +67,12 @@ Examples:
 - "Requires Python 3.11 or higher" → version_requirement
 - "Default port is 8080" → configuration
 - "Returns processed data in 5 seconds" → behavioral
+- "Multi-model truthfulness evaluation tool" → behavioral
+- "Built on LangGraph and LangChain" → behavioral
+- "See CLAUDE.md for project documentation" → configuration
+- "Under active development" → external_fact
+- "Supports web search and filesystem evidence" → behavioral
+- "Uses Pydantic for data validation" → behavioral
 
 Respond with classification and confidence."""),
             ("user", "Claim: {claim}")
@@ -78,16 +84,16 @@ Respond with classification and confidence."""),
 
 class InternalVerificationChain:
     """Verify documentation claims against actual codebase."""
-    
+
     def __init__(self, root_path: str, model: str = "gpt-4o"):
         self.root_path = Path(root_path)
         self.model = model
         self._llm = None
-    
+
     @property
     def llm(self):
         if self._llm is None:
-            base = ChatOpenAI(model=self.model, temperature=0)
+            base = create_chat_model(self.model, temperature=0)
             self._llm = base.with_structured_output(InternalVerificationOutput)
         return self._llm
     
@@ -136,14 +142,12 @@ class InternalVerificationChain:
         elif classification.claim_type == "behavioral":
             return await self._verify_behavioral_claim(claim)
         else:
-            return VerificationResult(
-                claim_id=claim.id,
-                verdict="NOT_ENOUGH_INFO",
-                confidence=0.0,
-                evidence=[],
-                explanation=f"Cannot verify internal claim of type: {classification.claim_type}",
-                model_votes={}
+            # Best-effort: try behavioral verification for unknown claim types
+            logger.info(
+                f"Claim type '{classification.claim_type}' has no specific handler, "
+                "falling back to behavioral verification"
             )
+            return await self._verify_behavioral_claim(claim)
     
     async def _verify_api_claim(self, claim: Claim) -> VerificationResult:
         """Verify API signature claim against actual code."""

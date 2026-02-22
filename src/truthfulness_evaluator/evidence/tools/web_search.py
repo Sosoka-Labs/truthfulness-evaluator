@@ -91,7 +91,7 @@ def get_web_search_tools():
 class WebEvidenceGatherer:
     """Gather evidence from web sources."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         tools = get_web_search_tools()
         self.search_tool = tools[0]  # web_search
         self.fetch_tool = tools[1]   # fetch_url

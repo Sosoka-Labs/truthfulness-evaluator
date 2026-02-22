@@ -4,12 +4,11 @@ import json
 import re
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
-from ..logging_config import get_logger
-from ..tools.filesystem import get_filesystem_tools
+from ..core.llm import create_chat_model
+from ..core.logging_config import get_logger
+from .tools.filesystem import get_filesystem_tools
 
 logger = get_logger()
 
@@ -39,11 +38,7 @@ class FilesystemEvidenceAgent:
         """Create agent using LangGraph 1.0+ create_react_agent."""
         tools = get_filesystem_tools(self.root_path)
 
-        # Select model based on name
-        if "claude" in self.model.lower():
-            llm = ChatAnthropic(model=self.model, temperature=0)
-        else:
-            llm = ChatOpenAI(model=self.model, temperature=0)
+        llm = create_chat_model(self.model, temperature=0)
 
         system_prompt = """You are an evidence-gathering agent exploring a filesystem.
 

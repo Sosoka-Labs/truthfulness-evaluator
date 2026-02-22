@@ -5,9 +5,9 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import interrupt
 
-from .models import TruthfulnessReport, Claim, VerificationResult, Evidence
-from .config import EvaluatorConfig
-from .logging_config import get_logger
+from ..models import TruthfulnessReport, Claim, VerificationResult, Evidence
+from ..core.config import EvaluatorConfig
+from ..core.logging_config import get_logger
 
 logger = get_logger()
 
@@ -33,7 +33,7 @@ def get_config_from_state(state: TruthfulnessState) -> EvaluatorConfig:
 # Node implementations
 async def extract_claims_node(state: TruthfulnessState) -> dict:
     """Extract claims from document."""
-    from .chains.extraction import SimpleClaimExtractionChain
+    from ..chains.extraction import SimpleClaimExtractionChain
     
     config = get_config_from_state(state)
     
@@ -74,7 +74,7 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
     
     # Filesystem search
     if config.enable_filesystem_search and state["root_path"]:
-        from .agents.evidence_agent import FilesystemEvidenceAgent
+        from ..evidence.agent import FilesystemEvidenceAgent
         
         try:
             agent = FilesystemEvidenceAgent(state["root_path"])
@@ -96,7 +96,7 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
     
     # Web search
     if config.enable_web_search:
-        from .tools.web_search import WebEvidenceGatherer
+        from ..evidence.tools.web_search import WebEvidenceGatherer
         
         try:
             gatherer = WebEvidenceGatherer()
@@ -121,7 +121,7 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
     
     # Process and analyze evidence
     if evidence:
-        from .chains.evidence import EvidenceProcessor
+        from ..chains.evidence import EvidenceProcessor
         processor = EvidenceProcessor(model=config.extraction_model)
         
         try:
@@ -155,7 +155,7 @@ async def verify_claim_node(state: TruthfulnessState) -> dict:
 
     logger.info(f"Verifying: {claim.text[:60]}...")
 
-    from .chains.consensus import ConsensusChain
+    from ..chains.consensus import ConsensusChain
     
     consensus = ConsensusChain(
         model_names=config.verification_models,
@@ -210,20 +210,17 @@ def should_continue(state: TruthfulnessState) -> str:
 
 async def generate_report_node(state: TruthfulnessState) -> dict:
     """Generate final truthfulness report."""
+    from ..core.grading import build_report
+
     verifications = state["verifications"]
     claims = state["claims"]
 
     logger.info(f"Generating report for {len(claims)} claims...")
 
-    # Find unvalidated claims
-    verified_ids = {v.claim_id for v in verifications}
-    unvalidated = [c for c in claims if c.id not in verified_ids]
-    
-    report = TruthfulnessReport(
+    report = build_report(
         source_document=state["document_path"],
         claims=claims,
         verifications=verifications,
-        unvalidated_claims=unvalidated
     )
 
     logger.info(f"Report generated: Grade {report.overall_grade}")
