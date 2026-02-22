@@ -88,13 +88,13 @@ def display_report(report):
 @app.command()
 def evaluate(
     document: str = typer.Argument(..., help="Path to document to evaluate"),
-    root_path: str = typer.Option(None, "--root-path", "-r", help="Root path for filesystem evidence search"),
-    output: str = typer.Option(None, "--output", "-o", help="Output file for JSON report"),
-    web_search: bool = typer.Option(True, "--web-search/--no-web-search", help="Enable web search"),
-    models: list[str] = typer.Option(["gpt-4o"], "--model", "-m", help="Models to use for verification (can specify multiple)"),
+    root_path: str = typer.Option(None, "--root-path", "-r", help="Root path for filesystem evidence"),
+    output: str = typer.Option(None, "--output", "-o", help="Output file for report"),
+    web_search: bool = typer.Option(True, help="Enable web search"),
+    models: list[str] = typer.Option(None, "--model", "-m", help="Models for verification (repeatable)"),
     confidence: float = typer.Option(0.7, "--confidence", "-c", help="Confidence threshold"),
-    human_review: bool = typer.Option(False, "--human-review", "-h", help="Enable human-in-the-loop for low confidence"),
-    mode: str = typer.Option("external", "--mode", help="Verification mode: external, internal, or both"),
+    human_review: bool = typer.Option(False, "--human-review", help="Enable human-in-the-loop review"),
+    mode: str = typer.Option("external", "--mode", help="Verification mode: external or internal"),
 ):
     """Evaluate truthfulness of claims in a document."""
     
@@ -108,8 +108,9 @@ def evaluate(
             raise typer.Exit(1)
         
         # Create config
+        effective_models = list(models) if models else ["gpt-4o"]
         config = EvaluatorConfig(
-            verification_models=list(models) if models else ["gpt-4o"],
+            verification_models=effective_models,
             enable_web_search=web_search and mode in ["external", "both"],
             enable_filesystem_search=root_path is not None,
             confidence_threshold=confidence,

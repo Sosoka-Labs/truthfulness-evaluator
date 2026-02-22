@@ -48,8 +48,8 @@ async def extract_and_classify_claims_node(state: InternalVerificationState) -> 
 
     logger.info(f"Extracted {len(claims)} claims")
 
-    # Classify claims if in "both" mode
-    if state.get("verification_mode") == "both":
+    # Classify claims if in "internal" or "both" mode
+    if state.get("verification_mode") in ("internal", "both"):
         classifier = ClaimClassifier(model=config.extraction_model)
         classifications = {}
         

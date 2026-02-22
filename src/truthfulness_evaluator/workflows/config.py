@@ -2,33 +2,28 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from ..protocols import ClaimExtractor, ClaimVerifier, EvidenceGatherer, ReportFormatter
 
 
-@dataclass(frozen=True)
+@dataclass
 class WorkflowConfig:
-    """Immutable configuration for a truthfulness evaluation workflow.
+    """Configuration for a truthfulness evaluation workflow.
 
-    Bundles strategy selections with their configuration.
+    Bundles ready-to-use strategy instances with workflow-level settings.
+    Callers construct strategy instances with desired config, then hand
+    them to WorkflowConfig. The builder plugs them into graph nodes.
     """
 
     name: str
     description: str
 
-    # Strategy selections (must implement the relevant protocol)
-    extractor: type[ClaimExtractor]
-    gatherers: list[type[EvidenceGatherer]]
-    verifier: type[ClaimVerifier]
-    formatters: list[type[ReportFormatter]]
-
-    # Strategy-specific configuration
-    extractor_config: dict[str, Any] = field(default_factory=dict)
-    gatherer_configs: list[dict[str, Any]] = field(default_factory=list)
-    verifier_config: dict[str, Any] = field(default_factory=dict)
-    formatter_configs: list[dict[str, Any]] = field(default_factory=list)
+    # Strategy instances (must satisfy the relevant protocol)
+    extractor: ClaimExtractor
+    gatherers: list[EvidenceGatherer]
+    verifier: ClaimVerifier
+    formatters: list[ReportFormatter]
 
     # Workflow-level configuration
     max_claims: int | None = None
