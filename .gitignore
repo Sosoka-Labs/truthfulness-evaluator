@@ -38,6 +38,12 @@ Thumbs.db
 # LLM working memory
 llm_memory/
 
+# Scratch / temp
+tmp/
+
 # Generated reports
 *.html
 !docs/**/*.html
+
+# Ruff
+.ruff_cache/
