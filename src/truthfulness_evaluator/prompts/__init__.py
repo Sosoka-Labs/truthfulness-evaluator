@@ -1,0 +1,13 @@
+"""Prompt templates for truthfulness evaluation."""
+
+from .extraction import CLAIM_EXTRACTION_PROMPT, TRIPLET_EXTRACTION_PROMPT
+from .verification import VERIFICATION_PROMPT, EVIDENCE_ANALYSIS_PROMPT
+from .consensus import CONSENSUS_SYNTHESIS_PROMPT
+
+__all__ = [
+    "CLAIM_EXTRACTION_PROMPT",
+    "TRIPLET_EXTRACTION_PROMPT", 
+    "VERIFICATION_PROMPT",
+    "EVIDENCE_ANALYSIS_PROMPT",
+    "CONSENSUS_SYNTHESIS_PROMPT",
+]

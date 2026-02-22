@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truthfulness Evaluation Report</title>
+    <style>
+        :root {
+            --color-success: #22c55e;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-info: #3b82f6;
+            --color-bg: #f8fafc;
+            --color-card: #ffffff;
+            --color-text: #1e293b;
+            --color-text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--color-card);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+
+        .meta {
+            color: var(--color-text-muted);
+            font-size: 14px;
+        }
+
+        .summary-card {
+            background: var(--color-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .grade-badge {
+            display: inline-block;
+            font-size: 48px;
+            font-weight: 800;
+            padding: 16px 32px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .grade-a { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .grade-b { background: linear-gradient(135deg, #84cc16, #65a30d); color: white; }
+        .grade-c { background: linear-gradient(135deg, #eab308, #ca8a04); color: white; }
+        .grade-d { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .grade-f { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: var(--color-bg);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-success { color: var(--color-success); }
+        .stat-danger { color: var(--color-danger); }
+        .stat-warning { color: var(--color-warning); }
+
+        .claims-section {
+            background: var(--color-card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .claim-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s;
+        }
+
+        .claim-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .claim-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .claim-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .claim-text {
+            font-size: 16px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .claim-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+
+        .evidence-list {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--color-bg);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .evidence-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .explanation {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-left: 3px solid var(--color-info);
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: var(--color-text-muted);
+        }
+
+        .model-votes {
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .vote {
+            display: inline-block;
+            margin-right: 12px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--color-text-muted);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Truthfulness Evaluation Report</h1>
+            <div class="meta">
+                <strong>Document:</strong> {{ report.source_document }} |
+                <strong>Date:</strong> {{ generated_date }}
+            </div>
+        </header>
+
+        <div class="summary-card">
+            <div style="text-align: center;">
+                <div class="grade-badge {{ report.overall_grade|grade_class }}">{{ report.overall_grade or 'N/A' }}</div>
+                <div style="font-size: 18px; color: var(--color-text-muted);">Overall Grade</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-value">{{ report.statistics.total_claims }}</span>
+                    <span class="stat-label">Total Claims</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value stat-success">{{ report.statistics.supported }}</span>
+                    <span class="stat-label">Supported</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value stat-danger">{{ report.statistics.refuted }}</span>
+                    <span class="stat-label">Refuted</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value stat-warning">{{ report.statistics.not_enough_info }}</span>
+                    <span class="stat-label">Not Enough Info</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="claims-section">
+            <h2 class="section-title">Detailed Results</h2>
+
+            {% for verification in report.verifications %}
+                {% set claim = report.claims|selectattr('id', 'equalto', verification.claim_id)|first %}
+                {% if claim %}
+            <div class="claim-card">
+                <div class="claim-header">
+                    <span class="claim-icon">{{ verification.verdict|verdict_icon }}</span>
+                    <div class="claim-text">{{ claim.text }}</div>
+                </div>
+
+                <div class="claim-meta">
+                    <span class="badge {{ verification.verdict|verdict_badge_class }}">{{ verification.verdict|verdict_badge_text }}</span>
+                    <span class="badge">Confidence: {{ verification.confidence|format_percent }}</span>
+                </div>
+
+                {% if verification.evidence %}
+                <div class="evidence-list">
+                    {% for ev in verification.evidence[:3] %}
+                    <div class="evidence-item">
+                        <span>📄</span>
+                        <span>{{ ev.source|filename }} (relevance: {{ ev.relevance_score|format_percent }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if verification.explanation %}
+                <div class="explanation">
+                    {{ verification.explanation[:300] }}{% if verification.explanation|length > 300 %}...{% endif %}
+                </div>
+                {% endif %}
+            </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <footer>
+            Generated by Truthfulness Evaluator v0.1.0 |
+            {{ report.verifications|length }} claims evaluated
+        </footer>
+    </div>
+</body>
+</html>
