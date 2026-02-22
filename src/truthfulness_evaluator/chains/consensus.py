@@ -5,7 +5,7 @@ from collections import Counter
 
 from ..models import Claim, Evidence, VerificationResult, Verdict
 from .verification import VerificationChain
-from ..logging_config import get_logger
+from ..core.logging_config import get_logger
 
 logger = get_logger()
 

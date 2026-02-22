@@ -3,7 +3,7 @@
 import os
 import pytest
 
-from truthfulness_evaluator.config import EvaluatorConfig, get_config
+from truthfulness_evaluator.core.config import EvaluatorConfig, get_config
 
 
 class TestEvaluatorConfig:

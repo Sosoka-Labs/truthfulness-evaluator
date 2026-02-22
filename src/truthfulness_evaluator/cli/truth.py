@@ -10,10 +10,10 @@ from rich.table import Table
 from rich.panel import Panel
 from rich import box
 
-from .graph import create_truthfulness_graph
-from .graph_internal import create_internal_verification_graph
-from .config import EvaluatorConfig
-from .reporting import ReportGenerator
+from ..workflows.graph import create_truthfulness_graph
+from ..workflows.graph_internal import create_internal_verification_graph
+from ..core.config import EvaluatorConfig
+from ..reporting import ReportGenerator
 
 app = typer.Typer(help="Truthfulness Evaluator - Verify claims in documents")
 console = Console()
@@ -182,7 +182,7 @@ def evaluate(
 @app.command()
 def version():
     """Show version information."""
-    from . import __version__
+    from .. import __version__
     console.print(f"Truthfulness Evaluator v{__version__}")
 
 

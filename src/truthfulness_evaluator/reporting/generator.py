@@ -5,7 +5,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from .models import TruthfulnessReport
+from ..models import TruthfulnessReport
 
 
 def _format_percent(value: float) -> str:
@@ -65,7 +65,7 @@ def _filename(source: str) -> str:
 def _setup_jinja_env() -> Environment:
     """Set up Jinja2 environment with custom filters."""
     env = Environment(
-        loader=PackageLoader("truthfulness_evaluator", "templates"),
+        loader=PackageLoader("truthfulness_evaluator.reporting", "templates"),
         autoescape=select_autoescape(["html", "xml"]),
     )
 

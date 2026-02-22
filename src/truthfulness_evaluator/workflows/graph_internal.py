@@ -4,10 +4,10 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from .models import TruthfulnessReport, Claim, VerificationResult, Evidence
-from .config import EvaluatorConfig
+from ..models import TruthfulnessReport, Claim, VerificationResult, Evidence
+from ..core.config import EvaluatorConfig
 from typing import Any
-from .logging_config import get_logger
+from ..core.logging_config import get_logger
 
 logger = get_logger()
 
@@ -34,8 +34,8 @@ def get_config_from_state(state: InternalVerificationState) -> EvaluatorConfig:
 
 async def extract_and_classify_claims_node(state: InternalVerificationState) -> dict:
     """Extract claims and classify as external vs internal."""
-    from .chains.extraction import SimpleClaimExtractionChain
-    from .chains.internal_verification import ClaimClassifier
+    from ..chains.extraction import SimpleClaimExtractionChain
+    from ..chains.internal_verification import ClaimClassifier
     
     config = get_config_from_state(state)
     
@@ -110,12 +110,12 @@ async def verify_claim_node(state: InternalVerificationState) -> dict:
 
 async def _verify_external(claim: Claim, state: InternalVerificationState, config: EvaluatorConfig) -> VerificationResult:
     """Verify using external sources (web search)."""
-    from .chains.consensus import ConsensusChain
+    from ..chains.consensus import ConsensusChain
     
     # Gather web evidence
     evidence = []
     if config.enable_web_search:
-        from .tools.web_search import WebEvidenceGatherer
+        from ..evidence.tools.web_search import WebEvidenceGatherer
         try:
             gatherer = WebEvidenceGatherer()
             web_evidence = await gatherer.gather_evidence(claim.text, max_results=2)
@@ -141,7 +141,7 @@ async def _verify_external(claim: Claim, state: InternalVerificationState, confi
 
 async def _verify_internal(claim: Claim, state: InternalVerificationState, config: EvaluatorConfig) -> VerificationResult:
     """Verify using internal codebase."""
-    from .chains.internal_verification import ClaimClassifier, InternalVerificationChain
+    from ..chains.internal_verification import ClaimClassifier, InternalVerificationChain
     
     if not state["root_path"]:
         return VerificationResult(
@@ -177,17 +177,15 @@ def should_continue(state: InternalVerificationState) -> str:
 
 async def generate_report_node(state: InternalVerificationState) -> dict:
     """Generate final truthfulness report."""
+    from ..core.grading import build_report
+
     verifications = state["verifications"]
     claims = state["claims"]
-    
-    verified_ids = {v.claim_id for v in verifications}
-    unvalidated = [c for c in claims if c.id not in verified_ids]
-    
-    report = TruthfulnessReport(
+
+    report = build_report(
         source_document=state["document_path"],
         claims=claims,
         verifications=verifications,
-        unvalidated_claims=unvalidated
     )
 
     mode = state.get("verification_mode", "external")

@@ -10,6 +10,7 @@ from truthfulness_evaluator.models import (
     TruthfulnessStatistics,
     TruthfulnessReport,
 )
+from truthfulness_evaluator.core.grading import is_verified
 
 
 class TestClaim:
@@ -222,7 +223,7 @@ class TestVerificationResult:
 
         assert result.verdict == "SUPPORTS"
         assert result.confidence == 0.9
-        assert result.is_verified is True
+        assert is_verified(result) is True
 
     def test_verification_result_refutes_high_confidence(self):
         """Test verification result with REFUTES and high confidence."""
@@ -234,7 +235,7 @@ class TestVerificationResult:
         )
 
         assert result.verdict == "REFUTES"
-        assert result.is_verified is True
+        assert is_verified(result) is True
 
     def test_verification_result_supports_low_confidence(self):
         """Test that SUPPORTS with low confidence is not verified."""
@@ -245,7 +246,7 @@ class TestVerificationResult:
             explanation="Weak supporting evidence",
         )
 
-        assert result.is_verified is False
+        assert is_verified(result) is False
 
     def test_verification_result_refutes_low_confidence(self):
         """Test that REFUTES with low confidence is not verified."""
@@ -256,7 +257,7 @@ class TestVerificationResult:
             explanation="Some contradicting evidence",
         )
 
-        assert result.is_verified is False
+        assert is_verified(result) is False
 
     def test_verification_result_not_enough_info(self):
         """Test that NOT_ENOUGH_INFO is never verified."""
@@ -267,7 +268,7 @@ class TestVerificationResult:
             explanation="Insufficient evidence",
         )
 
-        assert result.is_verified is False
+        assert is_verified(result) is False
 
     def test_verification_result_unverifiable(self):
         """Test that UNVERIFIABLE is never verified."""
@@ -278,7 +279,7 @@ class TestVerificationResult:
             explanation="Claim cannot be verified",
         )
 
-        assert result.is_verified is False
+        assert is_verified(result) is False
 
     def test_verification_result_confidence_threshold_boundary(self):
         """Test is_verified at exactly 0.7 confidence threshold."""
@@ -289,7 +290,7 @@ class TestVerificationResult:
             explanation="At threshold",
         )
 
-        assert result.is_verified is True
+        assert is_verified(result) is True
 
     def test_verification_result_with_evidence(self, sample_evidence):
         """Test verification result with evidence list."""
@@ -364,72 +365,24 @@ class TestTruthfulnessStatistics:
         assert stats.not_enough_info == 0
         assert stats.unverifiable == 0
 
-    def test_verification_rate_calculation(self):
-        """Test verification rate computed field."""
+    def test_statistics_stores_verification_rate(self):
+        """Test that verification_rate is stored as a regular field."""
         stats = TruthfulnessStatistics(
             total_claims=100,
             supported=60,
             refuted=20,
-            not_enough_info=15,
-            unverifiable=5,
+            verification_rate=0.8,
+            accuracy_score=0.75,
         )
 
-        # (60 + 20) / 100 = 0.8
         assert stats.verification_rate == 0.8
+        assert stats.accuracy_score == 0.75
 
-    def test_verification_rate_zero_claims(self):
-        """Test verification rate returns 0.0 when no claims."""
+    def test_statistics_defaults_to_zero_rates(self):
+        """Test that rates default to 0.0."""
         stats = TruthfulnessStatistics(total_claims=0)
 
         assert stats.verification_rate == 0.0
-
-    def test_verification_rate_all_verified(self):
-        """Test verification rate when all claims are verified."""
-        stats = TruthfulnessStatistics(
-            total_claims=50,
-            supported=30,
-            refuted=20,
-        )
-
-        assert stats.verification_rate == 1.0
-
-    def test_accuracy_score_calculation(self):
-        """Test accuracy score computed field."""
-        stats = TruthfulnessStatistics(
-            total_claims=100,
-            supported=60,
-            refuted=20,
-        )
-
-        # 60 / (60 + 20) = 0.75
-        assert stats.accuracy_score == 0.75
-
-    def test_accuracy_score_no_verified_claims(self):
-        """Test accuracy score returns 0.0 when no verified claims."""
-        stats = TruthfulnessStatistics(
-            total_claims=10,
-            not_enough_info=8,
-            unverifiable=2,
-        )
-
-        assert stats.accuracy_score == 0.0
-
-    def test_accuracy_score_all_supported(self):
-        """Test accuracy score when all verified claims are supported."""
-        stats = TruthfulnessStatistics(
-            total_claims=50,
-            supported=50,
-        )
-
-        assert stats.accuracy_score == 1.0
-
-    def test_accuracy_score_all_refuted(self):
-        """Test accuracy score when all verified claims are refuted."""
-        stats = TruthfulnessStatistics(
-            total_claims=30,
-            refuted=30,
-        )
-
         assert stats.accuracy_score == 0.0
 
 
@@ -441,7 +394,7 @@ class TestTruthfulnessReport:
         report = TruthfulnessReport(source_document="test.txt")
 
         assert report.source_document == "test.txt"
-        assert report.overall_grade == "F"  # No verifications
+        assert report.overall_grade is None
         assert report.overall_confidence == 0.0
         assert report.claims == []
         assert report.verifications == []
@@ -450,7 +403,9 @@ class TestTruthfulnessReport:
         self, sample_claim, sample_verification_result_supports
     ):
         """Test creating a report with claims and verifications."""
-        report = TruthfulnessReport(
+        from truthfulness_evaluator.core.grading import build_report
+
+        report = build_report(
             source_document="test.txt",
             claims=[sample_claim],
             verifications=[sample_verification_result_supports],
@@ -460,295 +415,6 @@ class TestTruthfulnessReport:
         assert len(report.verifications) == 1
         assert report.statistics.total_claims == 1
         assert report.statistics.supported == 1
-
-    @pytest.mark.parametrize(
-        "support_ratio,confidence,expected_grade",
-        [
-            (1.0, 0.95, "A+"),  # score = 0.95
-            (1.0, 0.90, "A+"),  # score = 0.90
-            (1.0, 0.88, "A"),   # score = 0.88
-            (1.0, 0.85, "A"),   # score = 0.85
-            (1.0, 0.82, "A-"),  # score = 0.82
-            (1.0, 0.80, "A-"),  # score = 0.80
-            (0.9, 0.85, "B+"),  # score = 0.765
-            (0.8, 0.9, "B"),    # score = 0.72
-            (0.75, 0.9, "C+"),  # actual: int(10*0.75)=7/10=0.7, score = 0.63
-            (0.7, 0.9, "C+"),   # score = 0.63
-            (0.6, 0.95, "C"),   # score = 0.57
-            (0.5, 1.0, "C-"),   # score = 0.50
-            (0.5, 0.85, "D"),   # score = 0.425
-            (0.3, 0.9, "F"),    # score = 0.27
-        ],
-    )
-    def test_calculate_grade_ranges(self, support_ratio, confidence, expected_grade):
-        """Test grade calculation across different score ranges."""
-        # Create verifications based on support_ratio and confidence
-        num_verified = 10
-        num_supports = int(num_verified * support_ratio)
-        num_refutes = num_verified - num_supports
-
-        claims = [
-            Claim(id=f"claim-{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(num_verified)
-        ]
-
-        verifications = []
-        for i in range(num_supports):
-            verifications.append(
-                VerificationResult(
-                    claim_id=f"claim-{i}",
-                    verdict="SUPPORTS",
-                    confidence=confidence,
-                    explanation="Supports",
-                )
-            )
-        for i in range(num_supports, num_verified):
-            verifications.append(
-                VerificationResult(
-                    claim_id=f"claim-{i}",
-                    verdict="REFUTES",
-                    confidence=confidence,
-                    explanation="Refutes",
-                )
-            )
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=claims,
-            verifications=verifications,
-        )
-
-        assert report.overall_grade == expected_grade
-
-    def test_calculate_grade_no_verifications(self):
-        """Test grade calculation with no verifications returns F."""
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=[Claim(id="c1", text="Claim", source_document="test.txt")],
-            verifications=[],
-        )
-
-        assert report.calculate_grade() == "F"
-        assert report.overall_grade == "F"
-
-    def test_calculate_grade_no_verified_claims(self):
-        """Test grade calculation when no claims pass verification threshold."""
-        verifications = [
-            VerificationResult(
-                claim_id="c1",
-                verdict="SUPPORTS",
-                confidence=0.6,  # Below threshold
-                explanation="Low confidence",
-            ),
-            VerificationResult(
-                claim_id="c2",
-                verdict="NOT_ENOUGH_INFO",
-                confidence=0.9,
-                explanation="Not enough info",
-            ),
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            verifications=verifications,
-        )
-
-        assert report.calculate_grade() == "F"
-
-    def test_model_post_init_calculates_grade(self):
-        """Test that model_post_init calculates grade automatically."""
-        verifications = [
-            VerificationResult(
-                claim_id="c1",
-                verdict="SUPPORTS",
-                confidence=0.95,
-                explanation="Strong support",
-            )
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            verifications=verifications,
-        )
-
-        assert report.overall_grade is not None
-        assert report.overall_grade == "A+"
-
-    def test_model_post_init_respects_provided_grade(self):
-        """Test that provided grade is not overwritten."""
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            overall_grade="B+",
-        )
-
-        assert report.overall_grade == "B+"
-
-    def test_model_post_init_calculates_statistics(self):
-        """Test that model_post_init calculates statistics."""
-        claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(5)
-        ]
-        verifications = [
-            VerificationResult(
-                claim_id="c0", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.8, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c2", verdict="REFUTES", confidence=0.85, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c3", verdict="NOT_ENOUGH_INFO", confidence=0.5, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c4", verdict="UNVERIFIABLE", confidence=0.4, explanation="ok"
-            ),
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=claims,
-            verifications=verifications,
-        )
-
-        assert report.statistics.total_claims == 5
-        assert report.statistics.supported == 2
-        assert report.statistics.refuted == 1
-        assert report.statistics.not_enough_info == 1
-        assert report.statistics.unverifiable == 1
-
-    def test_model_post_init_calculates_overall_confidence(self):
-        """Test that model_post_init calculates overall confidence."""
-        verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c2", verdict="REFUTES", confidence=0.8, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c3", verdict="SUPPORTS", confidence=0.7, explanation="ok"
-            ),
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            verifications=verifications,
-        )
-
-        # (0.9 + 0.8 + 0.7) / 3 = 0.8
-        assert report.overall_confidence == pytest.approx(0.8, rel=1e-9)
-
-    def test_model_post_init_no_verifications_confidence(self):
-        """Test overall confidence is 0.0 when no verifications."""
-        report = TruthfulnessReport(source_document="test.txt")
-
-        assert report.overall_confidence == 0.0
-
-    def test_generate_summary_no_claims(self):
-        """Test summary generation with no claims."""
-        report = TruthfulnessReport(source_document="test.txt")
-
-        assert report.summary == "No claims were extracted from the document."
-
-    def test_generate_summary_basic_structure(self):
-        """Test summary includes basic information."""
-        claims = [Claim(id="c1", text="Claim", source_document="test.txt")]
-        verifications = [
-            VerificationResult(
-                claim_id="c1", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            )
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=claims,
-            verifications=verifications,
-        )
-
-        assert "grade A+" in report.summary
-        assert "1 claims" in report.summary
-        assert "1 were supported" in report.summary
-
-    def test_generate_summary_low_verification_rate(self):
-        """Test summary mentions low verification rate."""
-        claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(10)
-        ]
-        verifications = [
-            VerificationResult(
-                claim_id="c0", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c1", verdict="NOT_ENOUGH_INFO", confidence=0.5, explanation="ok"
-            ),
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=claims,
-            verifications=verifications,
-        )
-
-        # Verification rate = 1/10 = 0.1 < 0.5
-        assert "Many claims lacked sufficient evidence" in report.summary
-
-    def test_generate_summary_low_accuracy_score(self):
-        """Test summary mentions low accuracy."""
-        # Need verification_rate >= 0.5 so the low-accuracy branch fires
-        # (not the "many claims lacked evidence" branch)
-        claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(6)
-        ]
-        verifications = [
-            VerificationResult(
-                claim_id="c0", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c1", verdict="REFUTES", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c2", verdict="REFUTES", confidence=0.9, explanation="ok"
-            ),
-            VerificationResult(
-                claim_id="c3", verdict="REFUTES", confidence=0.9, explanation="ok"
-            ),
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=claims,
-            verifications=verifications,
-        )
-
-        # verification_rate = 4/6 = 0.67 >= 0.5, accuracy = 1/4 = 0.25 < 0.7
-        assert "Several claims were found to be inaccurate" in report.summary
-
-    def test_generate_summary_high_accuracy(self):
-        """Test summary mentions high accuracy."""
-        claims = [
-            Claim(id=f"c{i}", text=f"Claim {i}", source_document="test.txt")
-            for i in range(10)
-        ]
-        verifications = [
-            VerificationResult(
-                claim_id=f"c{i}", verdict="SUPPORTS", confidence=0.9, explanation="ok"
-            )
-            for i in range(8)
-        ]
-
-        report = TruthfulnessReport(
-            source_document="test.txt",
-            claims=claims,
-            verifications=verifications,
-        )
-
-        # Accuracy = 8/8 = 1.0 >= 0.7
-        assert "appears to be largely accurate" in report.summary
 
     def test_report_with_unvalidated_claims(self):
         """Test report with unvalidated claims list."""

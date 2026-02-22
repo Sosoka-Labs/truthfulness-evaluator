@@ -2,7 +2,7 @@
 
 __version__ = "0.1.0"
 
-from .graph import create_truthfulness_graph
+from .workflows.graph import create_truthfulness_graph
 from .models import Claim, VerificationResult, TruthfulnessReport
 
 __all__ = [
