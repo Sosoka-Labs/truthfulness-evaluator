@@ -3,7 +3,7 @@
 ## create_truthfulness_graph
 
 ```python
-from truthfulness_evaluator.graph import create_truthfulness_graph
+from truthfulness_evaluator.workflows.graph import create_truthfulness_graph
 
 graph = create_truthfulness_graph()
 ```
@@ -13,7 +13,9 @@ Returns a compiled LangGraph with checkpointing.
 ## State
 
 ```python
-class TruthfulnessState(TypedDict):
+from truthfulness_evaluator.workflows.state import WorkflowState
+
+class WorkflowState(TypedDict):
     document: str
     document_path: str
     root_path: str | None
@@ -53,6 +55,8 @@ result = await graph.ainvoke({
 
 report = result["final_report"]
 ```
+
+Note: `config` above refers to an `EvaluatorConfig` instance from `truthfulness_evaluator.core.config`.
 
 ### With Checkpointing
 
@@ -105,8 +109,9 @@ Build your own workflow:
 
 ```python
 from langgraph.graph import StateGraph, START, END
+from truthfulness_evaluator.workflows.state import WorkflowState
 
-builder = StateGraph(TruthfulnessState)
+builder = StateGraph(WorkflowState)
 
 # Add nodes
 builder.add_node("extract", extract_claims_node)
@@ -139,21 +144,21 @@ new_config = graph.get_state(past_state.config)
 
 ### Graph Creation
 
-::: truthfulness_evaluator.graph.create_truthfulness_graph
+::: truthfulness_evaluator.workflows.graph.create_truthfulness_graph
     options:
       show_root_heading: true
       show_source: true
 
 ### State
 
-::: truthfulness_evaluator.graph.TruthfulnessState
+::: truthfulness_evaluator.workflows.state.WorkflowState
     options:
       show_root_heading: true
       show_source: true
 
 ### Configuration
 
-::: truthfulness_evaluator.config.EvaluatorConfig
+::: truthfulness_evaluator.core.config.EvaluatorConfig
     options:
       show_root_heading: true
       show_source: true

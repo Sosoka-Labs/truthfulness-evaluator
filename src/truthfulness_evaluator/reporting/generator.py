@@ -82,30 +82,30 @@ def _setup_jinja_env() -> Environment:
 
 class ReportGenerator:
     """Generate reports in various formats."""
-    
+
     def __init__(self, report: TruthfulnessReport):
         self.report = report
-    
+
     def to_json(self, indent: int = 2) -> str:
         """Generate JSON report."""
         return self.report.model_dump_json(indent=indent)
-    
+
     def to_markdown(self) -> str:
         """Generate Markdown report."""
         lines = []
-        
+
         # Header
         lines.append("# Truthfulness Evaluation Report")
         lines.append("")
         lines.append(f"**Document:** {self.report.source_document}")
         lines.append(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         lines.append("")
-        
+
         # Summary
         lines.append("## Summary")
         lines.append("")
-        lines.append(f"| Metric | Value |")
-        lines.append(f"|--------|-------|")
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
         lines.append(f"| **Grade** | {self.report.overall_grade or 'N/A'} |")
         lines.append(f"| **Confidence** | {self.report.overall_confidence:.1%} |")
         lines.append(f"| **Total Claims** | {self.report.statistics.total_claims} |")
@@ -113,15 +113,15 @@ class ReportGenerator:
         lines.append(f"| **Refuted** | {self.report.statistics.refuted} |")
         lines.append(f"| **Not Enough Info** | {self.report.statistics.not_enough_info} |")
         lines.append("")
-        
+
         if self.report.summary:
             lines.append(f"**Summary:** {self.report.summary}")
             lines.append("")
-        
+
         # Detailed Results
         lines.append("## Detailed Results")
         lines.append("")
-        
+
         for verification in self.report.verifications:
             claim = next(
                 (c for c in self.report.claims if c.id == verification.claim_id),
@@ -129,22 +129,22 @@ class ReportGenerator:
             )
             if not claim:
                 continue
-            
+
             # Claim header with verdict emoji
             emoji = {
                 "SUPPORTS": "✅",
                 "REFUTES": "❌",
                 "NOT_ENOUGH_INFO": "⚠️"
             }.get(verification.verdict, "❓")
-            
+
             lines.append(f"### {emoji} {claim.text}")
             lines.append("")
-            
+
             # Verdict details
             lines.append(f"**Verdict:** {verification.verdict}")
             lines.append(f"**Confidence:** {verification.confidence:.1%}")
             lines.append("")
-            
+
             # Model votes
             if verification.model_votes:
                 lines.append("**Model Votes:**")
@@ -152,7 +152,7 @@ class ReportGenerator:
                     model_short = model.split("-")[0]
                     lines.append(f"- {model_short}: {verdict}")
                 lines.append("")
-            
+
             # Evidence
             if verification.evidence:
                 lines.append("**Evidence:**")
@@ -160,7 +160,7 @@ class ReportGenerator:
                     source = Path(ev.source).name if "/" in ev.source else ev.source
                     lines.append(f"- {source} (relevance: {ev.relevance_score:.0%})")
                 lines.append("")
-            
+
             # Explanation
             if verification.explanation:
                 lines.append("**Explanation:**")
@@ -168,10 +168,10 @@ class ReportGenerator:
                 if len(verification.explanation) > 500:
                     lines.append("> ...")
                 lines.append("")
-            
+
             lines.append("---")
             lines.append("")
-        
+
         # Unvalidated claims
         if self.report.unvalidated_claims:
             lines.append("## Unvalidated Claims")
@@ -179,9 +179,9 @@ class ReportGenerator:
             for claim in self.report.unvalidated_claims:
                 lines.append(f"- {claim.text}")
             lines.append("")
-        
+
         return "\n".join(lines)
-    
+
     def to_html(self) -> str:
         """Generate HTML report with proper styling."""
         env = _setup_jinja_env()
@@ -193,11 +193,11 @@ class ReportGenerator:
         }
 
         return template.render(context)
-    
+
     def save(self, path: str, format: str = "auto") -> None:
         """Save report to file."""
         output_path = Path(path)
-        
+
         # Auto-detect format from extension
         if format == "auto":
             if output_path.suffix == ".json":
@@ -208,7 +208,7 @@ class ReportGenerator:
                 format = "html"
             else:
                 format = "markdown"  # Default
-        
+
         # Generate content
         if format == "json":
             content = self.to_json()
@@ -216,7 +216,7 @@ class ReportGenerator:
             content = self.to_html()
         else:  # markdown
             content = self.to_markdown()
-        
+
         # Write file
         output_path.write_text(content, encoding='utf-8')
 
@@ -224,7 +224,7 @@ class ReportGenerator:
 def generate_report(report: TruthfulnessReport, format: str = "markdown") -> str:
     """Quick report generation."""
     generator = ReportGenerator(report)
-    
+
     if format == "json":
         return generator.to_json()
     elif format == "html":

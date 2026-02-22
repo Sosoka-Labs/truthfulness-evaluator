@@ -1,6 +1,7 @@
 """Claim model for truthfulness evaluation."""
 
 from typing import Literal, Optional
+
 from pydantic import BaseModel, Field
 
 

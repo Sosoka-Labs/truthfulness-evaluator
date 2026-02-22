@@ -1,6 +1,7 @@
 """Report models for truthfulness evaluation."""
 
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 from .claim import Claim

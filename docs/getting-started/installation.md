@@ -4,6 +4,7 @@
 
 - Python 3.11+
 - OpenAI API key (or Anthropic for multi-model)
+- Typer 0.24+ (CLI framework)
 
 ## Install
 
@@ -43,11 +44,7 @@ Should output: `Truthfulness Evaluator v0.1.0`
 
 ## Optional Dependencies
 
-For filesystem evidence gathering:
-
-```bash
-pip install beautifulsoup4 requests
-```
+Web search is enabled by default using `duckduckgo-search` (bundled with the package).
 
 For development:
 
@@ -55,11 +52,15 @@ For development:
 pip install truthfulness-evaluator[dev]
 ```
 
+Note: `refchecker` is optional and NOT required. The tool works without it by falling back to LLM-based extraction.
+
 ## Troubleshooting
 
 ### ImportError: No module named 'refchecker'
 
-RefChecker is optional. The tool falls back to LLM-based extraction:
+RefChecker is optional and NOT required. The tool automatically falls back to LLM-based extraction. You can safely ignore this warning.
+
+If you want to use triplet extraction:
 
 ```bash
 pip install refchecker  # Optional, for triplet extraction
@@ -68,7 +69,7 @@ pip install refchecker  # Optional, for triplet extraction
 ### DuckDuckGo search not working
 
 ```bash
-pip install -U ddgs
+pip install -U duckduckgo-search
 ```
 
 ### Rate limits

@@ -14,7 +14,7 @@ truth-eval <document> [options]
 | `--output, -o` | Output file (auto-detects format from extension) | None |
 | `--model, -m` | Model to use (can specify multiple) | gpt-4o |
 | `--confidence, -c` | Confidence threshold | 0.7 |
-| `--web-search/--no-web-search` | Enable web search | True |
+| `--web-search` | Enable web search (enabled by default) | True |
 | `--human-review` | Enable human-in-the-loop | False |
 | `--mode` | Verification mode: external, internal, both | external |
 
@@ -56,8 +56,10 @@ truth-eval README.md --confidence 0.9
 
 ### Disable Web Search
 
+Web search is enabled by default. To run without web search, use filesystem evidence only:
+
 ```bash
-truth-eval README.md --no-web-search
+truth-eval README.md --root-path . --mode internal
 ```
 
 ### Human Review

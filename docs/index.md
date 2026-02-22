@@ -45,6 +45,7 @@ The output is a graded report (A+ to F) with detailed explanations, confidence s
 ## Key Features
 
 - **Multi-Model Consensus** — GPT-4o, Claude, and others vote on verdicts
+- **Pluggable Architecture** — Protocol-based adapters for custom extractors, gatherers, verifiers, and formatters
 - **Internal Verification** — Check documentation against actual codebase
 - **Filesystem Evidence** — React agent browses your project for supporting docs
 - **Web Search** — DuckDuckGo integration for external verification
@@ -200,4 +201,5 @@ The final report grade (A+ to F) is calculated based on two factors:
 
 - [Installation](getting-started/installation.md) — Set up in 5 minutes
 - [Quick Start](getting-started/quickstart.md) — Run your first evaluation
+- [Architecture](architecture/overview.md) — System design and pluggable workflows
 - [CLI Reference](usage/cli.md) — Command-line options

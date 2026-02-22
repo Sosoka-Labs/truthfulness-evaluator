@@ -62,17 +62,31 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
     - Configuration: getting-started/configuration.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Pluggable Workflows: architecture/workflows.md
+    - Design Philosophy: architecture/design.md
   - Usage:
-    - CLI: usage/cli.md
-    - Internal Verification: usage/internal-verification.md
+    - CLI Reference: usage/cli.md
     - Python API: usage/python-api.md
     - Workflows: usage/workflows.md
+    - Internal Verification: usage/internal-verification.md
   - Examples:
     - Basic Evaluation: examples/basic.md
     - Multi-Model Consensus: examples/consensus.md
     - Filesystem Evidence: examples/filesystem.md
+  - Extending:
+    - Custom Extractors: extending/extractors.md
+    - Custom Gatherers: extending/gatherers.md
+    - Custom Verifiers: extending/verifiers.md
+    - Custom Formatters: extending/formatters.md
+    - Plugins: extending/plugins.md
   - API Reference:
     - Models: api/models.md
-    - Chains: api/chains.md
+    - Protocols: api/protocols.md
+    - Adapters: api/adapters.md
+    - Workflows: api/workflows.md
+    - Core: api/core.md
+    - Chains (Legacy): api/chains.md
     - Graph: api/graph.md
     - Reporting: api/reporting.md

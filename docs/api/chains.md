@@ -1,5 +1,8 @@
 # Chains
 
+!!! warning "Legacy API"
+    The chains module is being replaced by the pluggable adapter architecture. New code should use the adapter classes in `extractors/`, `gatherers/`, `verifiers/`, and `formatters/` packages instead. See the [Adapters API Reference](./adapters.md) for the modern interface.
+
 ## Claim Extraction
 
 ### SimpleClaimExtractionChain

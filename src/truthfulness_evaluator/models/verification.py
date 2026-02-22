@@ -2,8 +2,8 @@
 
 from pydantic import BaseModel, Field
 
-from .types import Verdict
 from .evidence import Evidence
+from .types import Verdict
 
 
 class VerificationResult(BaseModel):

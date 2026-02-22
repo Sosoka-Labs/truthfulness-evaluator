@@ -83,6 +83,9 @@ print(result.model_votes)
 
 ## ICE (Iterative Consensus Ensemble)
 
+!!! warning "Partial Implementation"
+    The ICE critique and revision rounds are currently stubs. Round 1 (initial votes) works fully, but Rounds 2-3 (critique and revised votes) return placeholder results. Full ICE implementation is planned for a future release.
+
 Models critique each other:
 
 ```python

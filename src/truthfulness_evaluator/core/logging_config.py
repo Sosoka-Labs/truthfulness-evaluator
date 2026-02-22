@@ -11,43 +11,43 @@ def setup_logging(
     verbose: bool = False
 ) -> logging.Logger:
     """Setup logging configuration.
-    
+
     Args:
         level: Logging level (DEBUG, INFO, WARNING, ERROR)
         log_file: Optional file to write logs to
         verbose: If True, include detailed debug info
-        
+
     Returns:
         Configured logger
     """
     # Create logger
     logger = logging.getLogger("truthfulness_evaluator")
     logger.setLevel(getattr(logging, level.upper()))
-    
+
     # Clear existing handlers
     logger.handlers = []
-    
+
     # Format
     if verbose:
         fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     else:
         fmt = "%(levelname)s: %(message)s"
-    
+
     formatter = logging.Formatter(fmt)
-    
+
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
+
     # File handler (if specified)
     if log_file:
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
-    
+
     return logger
 
 

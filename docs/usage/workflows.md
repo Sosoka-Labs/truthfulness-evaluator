@@ -1,5 +1,63 @@
 # Workflows
 
+## Pluggable Workflows (New)
+
+The Truthfulness Evaluator now supports a pluggable workflow architecture that allows you to compose custom verification pipelines from interchangeable strategies.
+
+### Using Built-In Presets
+
+Four preset workflows are available out of the box:
+
+```python
+from truthfulness_evaluator.workflows.presets import register_builtin_presets
+from truthfulness_evaluator.workflows.registry import WorkflowRegistry
+
+# Register built-in workflows
+register_builtin_presets()
+
+# Use external verification (web search + multi-model consensus)
+config = WorkflowRegistry.get("external")
+
+# Use quick verification (single model + limited web search)
+quick_config = WorkflowRegistry.get("quick")
+
+# Use full verification (web + filesystem + consensus)
+full_config = WorkflowRegistry.get("full")
+
+# Use internal verification (codebase alignment)
+from truthfulness_evaluator.workflows.presets import create_internal_config
+internal_config = create_internal_config(root_path="/path/to/project")
+```
+
+### Creating Custom Workflows
+
+Compose your own workflows from adapter strategies:
+
+```python
+from truthfulness_evaluator.workflows.config import WorkflowConfig
+from truthfulness_evaluator.extractors import SimpleExtractor
+from truthfulness_evaluator.gatherers import WebSearchGatherer, FilesystemGatherer, CompositeGatherer
+from truthfulness_evaluator.verifiers import ConsensusVerifier
+from truthfulness_evaluator.formatters import JsonFormatter, MarkdownFormatter
+
+config = WorkflowConfig(
+    name="custom",
+    description="Custom verification pipeline.",
+    extractor=SimpleExtractor(model="gpt-4o"),
+    gatherers=[CompositeGatherer([
+        WebSearchGatherer(max_results=5),
+        FilesystemGatherer()
+    ])],
+    verifier=ConsensusVerifier(models=["gpt-4o", "claude-sonnet-4-5"]),
+    formatters=[JsonFormatter(), MarkdownFormatter()],
+)
+```
+
+See the [Pluggable Workflow Architecture](../architecture/workflows.md) documentation for complete details on protocols, adapters, and workflow composition.
+
+!!! info "Legacy Workflow"
+    The monolithic graph API described below (`create_truthfulness_graph`) still works and is fully supported. However, the pluggable workflow system is the recommended approach going forward for new integrations and custom pipelines.
+
 ## Standard Workflow
 
 ```mermaid

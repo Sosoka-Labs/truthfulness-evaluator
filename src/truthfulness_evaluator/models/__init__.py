@@ -1,10 +1,10 @@
 """Pydantic models for truthfulness evaluation."""
 
-from .types import Verdict
 from .claim import Claim
 from .evidence import Evidence
-from .verification import VerificationResult
 from .report import TruthfulnessReport, TruthfulnessStatistics
+from .types import Verdict
+from .verification import VerificationResult
 
 __all__ = [
     "Verdict",

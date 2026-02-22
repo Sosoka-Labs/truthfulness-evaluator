@@ -12,7 +12,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from pathlib import Path
 
-from truthfulness_evaluator.protocols import (
+from truthfulness_evaluator.core.protocols import (
     ClaimExtractor,
     EvidenceGatherer,
     ClaimVerifier,
@@ -27,21 +27,21 @@ from truthfulness_evaluator.models import (
 from truthfulness_evaluator.core.grading import build_report
 
 # Adapter imports
-from truthfulness_evaluator.extractors.simple import SimpleExtractor
-from truthfulness_evaluator.extractors.triplet import TripletExtractor
-from truthfulness_evaluator.gatherers.web import WebSearchGatherer
-from truthfulness_evaluator.gatherers.filesystem import FilesystemGatherer
-from truthfulness_evaluator.gatherers.composite import CompositeGatherer
-from truthfulness_evaluator.verifiers.single_model import SingleModelVerifier
-from truthfulness_evaluator.verifiers.consensus import ConsensusVerifier
-from truthfulness_evaluator.verifiers.internal import InternalVerifier
-from truthfulness_evaluator.formatters.json_fmt import JsonFormatter
-from truthfulness_evaluator.formatters.markdown import MarkdownFormatter
-from truthfulness_evaluator.formatters.html import HtmlFormatter
+from truthfulness_evaluator.strategies.extractors.simple import SimpleExtractor
+from truthfulness_evaluator.strategies.extractors.triplet import TripletExtractor
+from truthfulness_evaluator.strategies.gatherers.web import WebSearchGatherer
+from truthfulness_evaluator.strategies.gatherers.filesystem import FilesystemGatherer
+from truthfulness_evaluator.strategies.gatherers.composite import CompositeGatherer
+from truthfulness_evaluator.strategies.verifiers.single_model import SingleModelVerifier
+from truthfulness_evaluator.strategies.verifiers.consensus import ConsensusVerifier
+from truthfulness_evaluator.strategies.verifiers.internal import InternalVerifier
+from truthfulness_evaluator.strategies.formatters.json_fmt import JsonFormatter
+from truthfulness_evaluator.strategies.formatters.markdown import MarkdownFormatter
+from truthfulness_evaluator.strategies.formatters.html import HtmlFormatter
 
 # Preset imports
-from truthfulness_evaluator.workflows.registry import WorkflowRegistry
-from truthfulness_evaluator.workflows.presets import register_builtin_presets
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
 
 
 # =============================================================================
@@ -150,7 +150,7 @@ async def test_simple_extractor_forwarding():
     mock_chain.extract.return_value = mock_claims
 
     with patch(
-        "truthfulness_evaluator.extractors.simple.SimpleClaimExtractionChain",
+        "truthfulness_evaluator.strategies.extractors.simple.SimpleClaimExtractionChain",
         return_value=mock_chain,
     ):
         extractor = SimpleExtractor()
@@ -178,7 +178,7 @@ async def test_triplet_extractor_forwarding():
     mock_chain.extract.return_value = mock_claims
 
     with patch(
-        "truthfulness_evaluator.extractors.triplet.TripletExtractionChain",
+        "truthfulness_evaluator.strategies.extractors.triplet.TripletExtractionChain",
         return_value=mock_chain,
     ):
         extractor = TripletExtractor()
@@ -224,7 +224,7 @@ async def test_web_search_gatherer_normal_results():
     ]
 
     with patch(
-        "truthfulness_evaluator.gatherers.web.WebEvidenceGatherer",
+        "truthfulness_evaluator.strategies.gatherers.web.WebEvidenceGatherer",
         return_value=mock_gatherer,
     ):
         gatherer = WebSearchGatherer()
@@ -266,7 +266,7 @@ async def test_web_search_gatherer_error_filtering():
     ]
 
     with patch(
-        "truthfulness_evaluator.gatherers.web.WebEvidenceGatherer",
+        "truthfulness_evaluator.strategies.gatherers.web.WebEvidenceGatherer",
         return_value=mock_gatherer,
     ):
         gatherer = WebSearchGatherer()
@@ -286,7 +286,7 @@ async def test_web_search_gatherer_empty_results():
     mock_gatherer.gather_evidence.return_value = []
 
     with patch(
-        "truthfulness_evaluator.gatherers.web.WebEvidenceGatherer",
+        "truthfulness_evaluator.strategies.gatherers.web.WebEvidenceGatherer",
         return_value=mock_gatherer,
     ):
         gatherer = WebSearchGatherer()
@@ -312,7 +312,7 @@ async def test_filesystem_gatherer_with_root_path():
     ]
 
     with patch(
-        "truthfulness_evaluator.gatherers.filesystem.FilesystemEvidenceAgent",
+        "truthfulness_evaluator.strategies.gatherers.filesystem.FilesystemEvidenceAgent",
         return_value=mock_agent,
     ):
         gatherer = FilesystemGatherer()
@@ -532,7 +532,7 @@ async def test_single_model_verifier_forwarding():
     mock_chain.verify.return_value = mock_result
 
     with patch(
-        "truthfulness_evaluator.verifiers.single_model.VerificationChain",
+        "truthfulness_evaluator.strategies.verifiers.single_model.VerificationChain",
         return_value=mock_chain,
     ):
         verifier = SingleModelVerifier(model="gpt-4o")
@@ -564,7 +564,7 @@ async def test_consensus_verifier_forwarding():
     mock_chain.verify.return_value = mock_result
 
     with patch(
-        "truthfulness_evaluator.verifiers.consensus.ConsensusChain",
+        "truthfulness_evaluator.strategies.verifiers.consensus.ConsensusChain",
         return_value=mock_chain,
     ) as mock_constructor:
         models = ["gpt-4o", "claude-3-5-sonnet-20241022"]
@@ -593,7 +593,7 @@ async def test_internal_verifier_external_fact_shortcircuit():
     mock_classifier.classify = AsyncMock(return_value=MagicMock(claim_type="external_fact"))
 
     with patch(
-        "truthfulness_evaluator.verifiers.internal.ClaimClassifier",
+        "truthfulness_evaluator.strategies.verifiers.internal.ClaimClassifier",
         return_value=mock_classifier,
     ):
         verifier = InternalVerifier(root_path="/project")
@@ -623,10 +623,10 @@ async def test_internal_verifier_api_signature_delegation():
     mock_chain.verify.return_value = mock_result
 
     with patch(
-        "truthfulness_evaluator.verifiers.internal.ClaimClassifier",
+        "truthfulness_evaluator.strategies.verifiers.internal.ClaimClassifier",
         return_value=mock_classifier,
     ), patch(
-        "truthfulness_evaluator.verifiers.internal.InternalVerificationChain",
+        "truthfulness_evaluator.strategies.verifiers.internal.InternalVerificationChain",
         return_value=mock_chain,
     ):
         verifier = InternalVerifier(root_path="/project")
@@ -645,7 +645,7 @@ async def test_internal_verifier_classifier_exception():
     mock_classifier.classify = AsyncMock(side_effect=Exception("Classifier error"))
 
     with patch(
-        "truthfulness_evaluator.verifiers.internal.ClaimClassifier",
+        "truthfulness_evaluator.strategies.verifiers.internal.ClaimClassifier",
         return_value=mock_classifier,
     ):
         verifier = InternalVerifier(root_path="/project")
