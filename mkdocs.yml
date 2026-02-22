@@ -22,7 +22,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
-    - navigation.expand
+    - navigation.top
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -63,26 +63,26 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
     - Configuration: getting-started/configuration.md
-  - Architecture:
-    - Overview: architecture/overview.md
-    - Pluggable Workflows: architecture/workflows.md
-    - Design Philosophy: architecture/design.md
-  - Usage:
+  - User Guide:
     - CLI Reference: usage/cli.md
     - Python API: usage/python-api.md
     - Workflows: usage/workflows.md
     - Internal Verification: usage/internal-verification.md
-  - Examples:
-    - Basic Evaluation: examples/basic.md
-    - Multi-Model Consensus: examples/consensus.md
-    - Filesystem Evidence: examples/filesystem.md
+    - Examples:
+      - Basic Evaluation: examples/basic.md
+      - Multi-Model Consensus: examples/consensus.md
+      - Filesystem Evidence: examples/filesystem.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Pluggable Workflows: architecture/workflows.md
+    - Design Philosophy: architecture/design.md
   - Extending:
     - Custom Extractors: extending/extractors.md
     - Custom Gatherers: extending/gatherers.md
     - Custom Verifiers: extending/verifiers.md
     - Custom Formatters: extending/formatters.md
     - Plugins: extending/plugins.md
-  - API Reference:
+  - Reference:
     - Models: api/models.md
     - Protocols: api/protocols.md
     - Adapters: api/adapters.md
