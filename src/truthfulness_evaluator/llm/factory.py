@@ -8,8 +8,6 @@ from ..core.logging_config import get_logger
 
 logger = get_logger()
 
-# TODO: Extend with Bedrock, Ollama, etc.
-
 _ANTHROPIC_HINTS = ("claude", "anthropic")
 _OPENAI_HINTS = ("gpt", "o1", "o3", "o4", "openai")
 

@@ -38,6 +38,9 @@ Thumbs.db
 # LLM working memory
 llm_memory/
 
+# Claude Code
+CLAUDE.md
+
 # Scratch / temp
 tmp/
 

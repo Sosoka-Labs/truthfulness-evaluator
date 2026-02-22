@@ -4,14 +4,14 @@ version = "0.1.0"
 description = "Multi-model truthfulness evaluation with filesystem-aware evidence gathering"
 authors = ["John Sosoka"]
 readme = "README.md"
-license = "MIT"
+license = "GPL-3.0-or-later"
 homepage = "https://sosoka-labs.github.io/truthfulness-evaluator/"
 repository = "https://github.com/Sosoka-Labs/truthfulness-evaluator"
 keywords = ["llm", "fact-checking", "truthfulness", "verification", "langgraph", "langchain"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Quality Assurance",

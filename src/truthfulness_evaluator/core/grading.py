@@ -42,7 +42,7 @@ def calculate_grade(
     support_ratio = sum(1 for v in verified if v.verdict == "SUPPORTS") / len(verified)
     confidence = sum(v.confidence for v in verified) / len(verified)
 
-    score = support_ratio * confidence
+    score = round(support_ratio * confidence, 10)
 
     if score >= 0.9:
         return "A+"

@@ -7,7 +7,7 @@ __version__ = "0.1.0"
 from .core.protocols import ClaimExtractor, ClaimVerifier, EvidenceGatherer, ReportFormatter
 
 # Workflow infrastructure
-from .llm.workflows import WorkflowBuilder, WorkflowConfig, WorkflowRegistry
+from .llm.workflows import WorkflowConfig, WorkflowRegistry
 from .llm.workflows.graph import create_truthfulness_graph
 from .llm.workflows.presets import register_builtin_presets
 
@@ -54,7 +54,6 @@ __all__ = [
     "JsonFormatter",
     "MarkdownFormatter",
     # Workflow infrastructure
-    "WorkflowBuilder",
     "WorkflowConfig",
     "WorkflowRegistry",
     "register_builtin_presets",

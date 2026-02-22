@@ -1,30 +1,33 @@
-name: Publish to PyPI
-
-on:
-  release:
-    types: [published]
-
-permissions:
-  id-token: write
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    environment: pypi
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Build package
-        run: poetry build
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+# Publish to PyPI — disabled until trusted publisher is configured.
+# See: https://github.com/Sosoka-Labs/truthfulness-evaluator/issues/1
+#
+# name: Publish to PyPI
+#
+# on:
+#   release:
+#     types: [published]
+#
+# permissions:
+#   id-token: write
+#
+# jobs:
+#   publish:
+#     runs-on: ubuntu-latest
+#     environment: pypi
+#
+#     steps:
+#       - uses: actions/checkout@v4
+#
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.12"
+#
+#       - name: Install Poetry
+#         run: pip install poetry
+#
+#       - name: Build package
+#         run: poetry build
+#
+#       - name: Publish to PyPI
+#         uses: pypa/gh-action-pypi-publish@release/v1
