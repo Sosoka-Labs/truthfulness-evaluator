@@ -69,6 +69,14 @@ graph TD
 
 ### Installation
 
+> **Note:** PyPI publishing is in progress (see [#10](https://github.com/Sosoka-Labs/truthfulness-evaluator/issues/10)).
+> For now, install from source:
+>
+> ```bash
+> pip install git+https://github.com/Sosoka-Labs/truthfulness-evaluator.git
+> ```
+
+Once published:
 ```bash
 pip install truthfulness-evaluator
 ```
