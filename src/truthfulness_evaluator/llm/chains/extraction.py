@@ -1,6 +1,7 @@
 """Claim extraction using structured outputs."""
 
 import asyncio
+import re
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -18,6 +19,35 @@ from ..factory import create_chat_model
 from ..prompts.extraction import CLAIM_EXTRACTION_PROMPT, TRIPLET_EXTRACTION_PROMPT
 
 logger = get_logger()
+
+
+def strip_example_blocks(text: str) -> str:
+    """Remove fenced code blocks and inline code from document text.
+
+    Fenced code blocks (``` ... ``` and ~~~ ... ~~~) often contain example
+    output, code snippets, or illustrative scenarios that are not real
+    assertions about the project. Removing them before extraction prevents
+    false positives where the evaluator treats example claims as real claims.
+
+    Inline code spans (`...`) are also stripped when they contain illustrative
+    values rather than references to actual project entities.
+
+    Args:
+        text: Raw document text.
+
+    Returns:
+        Document text with example blocks replaced by whitespace.
+    """
+    # Fenced code blocks: ```...``` or ~~~...~~~ (with optional language tag)
+    text = re.sub(
+        r"(^|\n)(```|~~~)[^\n]*\n.*?\n\2(\s*\n|$)",
+        r"\1\n",
+        text,
+        flags=re.DOTALL,
+    )
+    # Inline code spans
+    text = re.sub(r"`[^`]+`", "", text)
+    return text
 
 
 # Structured output models
@@ -80,8 +110,12 @@ class ClaimExtractionChain:
         Returns:
             List of Claim objects
         """
+        # Strip example blocks before extraction to avoid false positives
+        # from illustrative content in fenced code blocks and inline code.
+        cleaned_document = strip_example_blocks(document)
+
         # Run extraction in thread pool (RefChecker is synchronous)
-        triplets = await asyncio.to_thread(self._extract_triplets, document)
+        triplets = await asyncio.to_thread(self._extract_triplets, cleaned_document)
 
         # Convert triplets to Claim objects
         claims = []
@@ -146,11 +180,14 @@ class SimpleClaimExtractionChain:
         self, document: str, source_path: str, max_claims: Optional[int] = None
     ) -> list[Claim]:
         """Extract claims using structured LLM output."""
+        # Strip example blocks before extraction to avoid false positives
+        # from illustrative content in fenced code blocks and inline code.
+        cleaned_document = strip_example_blocks(document)
 
         chain = CLAIM_EXTRACTION_PROMPT | self.llm
 
         try:
-            result: ClaimExtractionOutput = await chain.ainvoke({"text": document})
+            result: ClaimExtractionOutput = await chain.ainvoke({"text": cleaned_document})
 
             claims = []
             for i, extracted in enumerate(result.claims):
@@ -197,11 +234,14 @@ class TripletExtractionChain:
         self, document: str, source_path: str, max_claims: Optional[int] = None
     ) -> list[Claim]:
         """Extract claims as triplets using structured output."""
+        # Strip example blocks before extraction to avoid false positives
+        # from illustrative content in fenced code blocks and inline code.
+        cleaned_document = strip_example_blocks(document)
 
         chain = TRIPLET_EXTRACTION_PROMPT | self.llm
 
         try:
-            result: TripletExtractionOutput = await chain.ainvoke({"text": document})
+            result: TripletExtractionOutput = await chain.ainvoke({"text": cleaned_document})
 
             claims = []
             for i, triplet in enumerate(result.triplets):

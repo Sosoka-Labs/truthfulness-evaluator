@@ -14,6 +14,8 @@ A factual claim is a statement that can be objectively verified as true or false
 - Can be verified through evidence
 - Are not opinions, predictions, or subjective statements
 
+CRITICAL: Skip claims found inside fenced code blocks, example output blocks, or inline code that are clearly illustrative or hypothetical scenarios. Only extract claims that the document itself is asserting as true about the project.
+
 For each claim, provide:
 1. The exact claim text
 2. The claim type: "explicit" (directly stated), "implicit" (inferred), or "inferred" (requires reasoning)
@@ -48,7 +50,9 @@ Example:
 Text: "Python was created in 1991 by Guido van Rossum."
 Triplet: subject="Python", relation="was created in", object="1991", context="by Guido van Rossum"
 
-Only extract objectively verifiable facts. Skip opinions, predictions, and subjective statements.""",
+Only extract objectively verifiable facts. Skip opinions, predictions, and subjective statements.
+
+CRITICAL: Skip claims found inside fenced code blocks, example output blocks, or inline code that are clearly illustrative or hypothetical scenarios. Only extract claims that the document itself is asserting as true.""",
         ),
         (
             "user",

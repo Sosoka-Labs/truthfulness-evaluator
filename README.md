@@ -7,6 +7,7 @@ Multi-model truthfulness evaluation with filesystem-aware evidence gathering.
 [![CI](https://github.com/Sosoka-Labs/truthfulness-evaluator/actions/workflows/ci.yml/badge.svg)](https://github.com/Sosoka-Labs/truthfulness-evaluator/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![AI Code Review](https://github.com/sosoka-labs/truthfulness-evaluator/actions/workflows/ai-code-review.yml/badge.svg)
 
 ---
 
@@ -173,6 +174,12 @@ poetry run ruff check src/ tests/              # Lint
 poetry run mypy src/                           # Type check
 mkdocs serve                                   # Docs dev server
 ```
+
+## AI Code Review
+
+All pull requests are automatically reviewed by GPT-4o via [ai-code-review](https://github.com/AleksandrFurmenkovOfficial/ai-code-review). The AI checks for code quality, security issues, performance concerns, and maintainability.
+
+Reviews run on every PR open and update. Results are posted as inline comments on the pull request.
 
 ## License
 

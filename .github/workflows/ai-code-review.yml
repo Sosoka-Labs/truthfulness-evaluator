@@ -1,0 +1,21 @@
+# AI Code Review Workflow
+# Uses centralized reusable workflow from Sosoka-Labs/.github
+# Requires: OPENAI_API_KEY repository or organization secret
+
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  ai-review:
+    uses: Sosoka-Labs/.github/.github/workflows/ai-code-review.yml@main
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
