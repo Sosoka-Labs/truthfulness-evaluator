@@ -7,15 +7,13 @@ name: AI Code Review
 on:
   pull_request:
     types: [opened, synchronize]
-  issue_comment:
 
 permissions:
-  contents: write
-  issues: write
+  contents: read
   pull-requests: write
 
 jobs:
-  ai-review:
+  review:
     uses: Sosoka-Labs/.github/.github/workflows/ai-code-review.yml@main
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
