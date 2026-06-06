@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .core.config import EvaluatorConfig
+from .core.config import get_config
 from .llm.workflows.graph import create_truthfulness_graph
 from .llm.workflows.graph_internal import create_internal_verification_graph
 from .reporting import ReportGenerator
@@ -93,15 +93,25 @@ def evaluate(
         None, "--root-path", "-r", help="Root path for filesystem evidence"
     ),
     output: str = typer.Option(None, "--output", "-o", help="Output file for report"),
-    web_search: bool = typer.Option(True, help="Enable web search"),
-    models: list[str] = typer.Option(
+    web_search: bool | None = typer.Option(
+        None,
+        "--web-search/--no-web-search",
+        help="Enable web search (defaults to .env or True)",
+    ),
+    models: list[str] | None = typer.Option(
         None, "--model", "-m", help="Models for verification (repeatable)"
     ),
-    confidence: float = typer.Option(0.7, "--confidence", "-c", help="Confidence threshold"),
-    human_review: bool = typer.Option(
-        False, "--human-review", help="Enable human-in-the-loop review"
+    confidence: float | None = typer.Option(
+        None, "--confidence", "-c", help="Confidence threshold"
     ),
-    mode: str = typer.Option("external", "--mode", help="Verification mode: external or internal"),
+    human_review: bool | None = typer.Option(
+        None,
+        "--human-review/--no-human-review",
+        help="Enable human-in-the-loop review",
+    ),
+    mode: str = typer.Option(
+        "external", "--mode", help="Verification mode: external, internal, or both"
+    ),
 ):
     """Evaluate truthfulness of claims in a document."""
 
@@ -114,15 +124,23 @@ def evaluate(
             console.print(f"[red]✗[/red] Error loading document: {e}")
             raise typer.Exit(1) from None
 
-        # Create config
-        effective_models = list(models) if models else ["gpt-4o"]
-        config = EvaluatorConfig(
-            verification_models=effective_models,
-            enable_web_search=web_search and mode in ["external", "both"],
-            enable_filesystem_search=root_path is not None,
-            confidence_threshold=confidence,
-            enable_human_review=human_review,
-        )
+        # Load config from .env first, then override with CLI args
+        config = get_config()
+
+        if models is not None:
+            config.verification_models = list(models)
+
+        config.enable_web_search = (
+            web_search if web_search is not None else config.enable_web_search
+        ) and mode in ["external", "both"]
+
+        config.enable_filesystem_search = root_path is not None
+
+        if confidence is not None:
+            config.confidence_threshold = confidence
+
+        if human_review is not None:
+            config.enable_human_review = human_review
 
         # Create appropriate graph based on mode
         if mode == "external":

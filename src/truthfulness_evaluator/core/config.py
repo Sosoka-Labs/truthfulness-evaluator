@@ -16,7 +16,7 @@ class EvaluatorConfig(BaseSettings):
     )
 
     # Model configuration
-    extraction_model: str = "gpt-4o-mini"
+    claim_extraction_model: str = "gpt-4o-mini"
     verification_models: list[str] = ["gpt-4o", "claude-sonnet-4-5"]
     consensus_method: Literal["simple", "weighted", "ice"] = "weighted"
     confidence_threshold: float = 0.7
