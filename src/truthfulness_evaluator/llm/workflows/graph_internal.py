@@ -42,14 +42,14 @@ async def extract_and_classify_claims_node(state: InternalVerificationState) -> 
     config = get_config_from_state(state)
 
     # Extract claims
-    extractor = SimpleClaimExtractionChain(model=config.extraction_model)
+    extractor = SimpleClaimExtractionChain(model=config.claim_extraction_model)
     claims = await extractor.extract(state["document"], state["document_path"])
 
     logger.info(f"Extracted {len(claims)} claims")
 
     # Classify claims if in "internal" or "both" mode
     if state.get("verification_mode") in ("internal", "both"):
-        classifier = ClaimClassifier(model=config.extraction_model)
+        classifier = ClaimClassifier(model=config.claim_extraction_model)
         classifications = {}
 
         for claim in claims:
@@ -169,7 +169,7 @@ async def _verify_internal(
     # Classify if not already done
     classification = state.get("classifications", {}).get(claim.id)
     if not classification:
-        classifier = ClaimClassifier(model=config.extraction_model)
+        classifier = ClaimClassifier(model=config.claim_extraction_model)
         classification = await classifier.classify(claim)
 
     # Verify internally
