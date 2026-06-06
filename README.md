@@ -165,7 +165,7 @@ cd truthfulness-evaluator
 poetry install
 ```
 
-Branch workflow: `main` is stable releases, `dev` is active development. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
+Branch workflow: `main` is stable releases, `develop` is active development. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
 
 ```bash
 poetry run pytest                              # Run tests
