@@ -78,6 +78,13 @@ Truthfulness Evaluator — Python CLI and library for multi-model claim verifica
 - **Graph constructors:** `create_truthfulness_graph()` and `create_internal_verification_graph()` in `src/truthfulness_evaluator/llm/workflows/`
 - **Main module exports:** `src/truthfulness_evaluator/__init__.py` exposes all public APIs.
 
+## Version & Releases
+
+- **Version source of truth:** `pyproject.toml` `[tool.poetry] version`.
+- **Dynamic `__version__`:** `src/truthfulness_evaluator/__init__.py` reads from `pyproject.toml` via `importlib.metadata`.
+- **Bump process:** `poetry version [patch|minor|major]` → update `CHANGELOG.md` with release date → tag `vX.Y.Z` → merge `develop` → `main` via PR.
+- **Changelog:** `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/) format. Every PR should update the `[Unreleased]` section.
+
 ## Operational Notes
 
 - **Generated files to ignore:** `site/` (MkDocs build), `llm_memory/` (LLM working memory), `CLAUDE.md` (local agent scratch), `*.html` (generated reports).

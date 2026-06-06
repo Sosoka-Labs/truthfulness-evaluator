@@ -229,7 +229,7 @@ Here's what actual consensus output looks like with detailed model votes:
 ```python
 # Cheap extraction, expensive verification
 config = EvaluatorConfig(
-    extraction_model="gpt-4o-mini",  # $0.15/M tokens
+    claim_extraction_model="gpt-4o-mini",  # $0.15/M tokens
     verification_models=["gpt-4o"],   # $2.50/M tokens
 )
 ```
