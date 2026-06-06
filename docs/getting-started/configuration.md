@@ -6,7 +6,7 @@ All config via `TRUTH_*` prefix:
 
 ```bash
 # Models
-TRUTH_EXTRACTION_MODEL=gpt-4o-mini
+TRUTH_CLAIM_EXTRACTION_MODEL=gpt-4o-mini
 TRUTH_VERIFICATION_MODELS=["gpt-4o","claude-sonnet-4-5"]
 
 # Thresholds
@@ -21,22 +21,54 @@ TRUTH_ENABLE_HUMAN_REVIEW=false
 TRUTH_HUMAN_REVIEW_THRESHOLD=0.6
 ```
 
+## API Keys
+
+Set keys in `.env` or export them directly:
+
+```bash
+# Required
+OPENAI_API_KEY=sk-...
+
+# Optional (for multi-model consensus)
+ANTHROPIC_API_KEY=sk-ant-...
+FIREWORKS_API_KEY=fw-...
+```
+
+All keys are also loaded via `TRUTH_*` prefix (e.g., `TRUTH_OPENAI_API_KEY`).
+
 ## Config File
 
-Create `.env`:
+Create `.env` in the project root:
 
 ```bash
 OPENAI_API_KEY=sk-...
-TRUTH_EXTRACTION_MODEL=gpt-4o-mini
+TRUTH_CLAIM_EXTRACTION_MODEL=gpt-4o-mini
 TRUTH_CONFIDENCE_THRESHOLD=0.6
+TRUTH_VERIFICATION_MODELS=["gpt-4o","claude-sonnet-4-5"]
 ```
 
-Load automatically:
+Load automatically (both CLI and Python API):
 
 ```python
-from truthfulness_evaluator.core.config import EvaluatorConfig
+from truthfulness_evaluator.core.config import get_config
 
-config = EvaluatorConfig()  # Reads .env
+config = get_config()  # Reads .env
+```
+
+### CLI Override
+
+CLI flags override `.env` values. Omit a flag to use the `.env` value:
+
+```bash
+# .env
+TRUTH_VERIFICATION_MODELS=["accounts/fireworks/models/llama-v3-8b-instruct"]
+TRUTH_CONFIDENCE_THRESHOLD=0.9
+
+# Uses .env models and confidence
+truth-eval README.md
+
+# Overrides only confidence
+truth-eval README.md --confidence 0.7
 ```
 
 ## Python Configuration
@@ -46,7 +78,7 @@ from truthfulness_evaluator.core.config import EvaluatorConfig
 
 config = EvaluatorConfig(
     # Models
-    extraction_model="gpt-4o-mini",
+    claim_extraction_model="gpt-4o-mini",
     verification_models=["gpt-4o", "claude-sonnet-4-5"],
     
     # Consensus
@@ -76,6 +108,7 @@ config = EvaluatorConfig(
 | `gpt-4o-mini` | Extraction, fast verification | Low |
 | `gpt-4o` | Primary verification | Medium |
 | `claude-sonnet-4-5` | Secondary verification | Medium |
+| `accounts/fireworks/...` | Cost-effective verification | Low |
 | `gpt-4o` + `claude` | High-confidence consensus | Higher |
 
 ## Consensus Methods

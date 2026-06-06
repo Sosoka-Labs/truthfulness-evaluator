@@ -8,6 +8,7 @@ Multi-model truthfulness evaluation with filesystem-aware evidence gathering.
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![AI Code Review](https://github.com/sosoka-labs/truthfulness-evaluator/actions/workflows/ai-code-review.yml/badge.svg)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Sosoka-Labs/truthfulness-evaluator/blob/main/CHANGELOG.md)
 
 ---
 
@@ -58,7 +59,7 @@ graph TD
 
 ## Key Features
 
-- **Multi-Model Consensus** - GPT-4o, Claude, and other models vote independently on verdicts, reducing hallucination risk through ensemble verification
+- **Multi-Model Consensus** - GPT-4o, Claude, Fireworks AI, and other models vote independently on verdicts, reducing hallucination risk through ensemble verification
 - **Filesystem Evidence** - React agent browses your codebase, reads source files, and follows imports to verify code-specific claims
 - **Web Search Integration** - DuckDuckGo search for external fact verification with URL fetching and content analysis
 - **Pluggable Workflows** - Composable extractors, gatherers, verifiers, and formatters with built-in presets (external, full, quick, internal)
@@ -92,7 +93,10 @@ Optional (for multi-model consensus):
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
+export FIREWORKS_API_KEY="fw_..."
 ```
+
+Or use a `.env` file (see `.env.example` for all options).
 
 ### Basic Usage
 
@@ -165,7 +169,7 @@ cd truthfulness-evaluator
 poetry install
 ```
 
-Branch workflow: `main` is stable releases, `dev` is active development. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
+Branch workflow: `main` is stable releases, `develop` is active development. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
 
 ```bash
 poetry run pytest                              # Run tests

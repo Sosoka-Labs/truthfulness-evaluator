@@ -12,10 +12,10 @@ truth-eval <document> [options]
 |--------|-------------|---------|
 | `--root-path, -r` | Root directory for filesystem search | None |
 | `--output, -o` | Output file (auto-detects format from extension) | None |
-| `--model, -m` | Model to use (can specify multiple) | gpt-4o |
-| `--confidence, -c` | Confidence threshold | 0.7 |
-| `--web-search` | Enable web search (enabled by default) | True |
-| `--human-review` | Enable human-in-the-loop | False |
+| `--model, -m` | Model to use (can specify multiple) | `.env` or `gpt-4o` |
+| `--confidence, -c` | Confidence threshold | `.env` or `0.7` |
+| `--web-search` / `--no-web-search` | Enable/disable web search | `.env` or `True` |
+| `--human-review` / `--no-human-review` | Enable human-in-the-loop | `.env` or `False` |
 | `--mode` | Verification mode: external, internal, both | external |
 
 ## Examples
@@ -39,6 +39,13 @@ truth-eval README.md \
   --model gpt-4o \
   --model gpt-4o-mini \
   --model claude-sonnet-4-5
+```
+
+### Fireworks AI
+
+```bash
+export FIREWORKS_API_KEY="fw_..."
+truth-eval README.md --model accounts/fireworks/models/llama-v3-8b-instruct
 ```
 
 ### Save Report
@@ -136,12 +143,47 @@ Self-contained HTML with styling.
 | 0 | Success |
 | 1 | Error (file not found, API error, etc.) |
 
-## Environment Variables
+## Configuration File
 
-Override defaults:
+The CLI reads `.env` automatically. CLI flags override `.env` values.
 
 ```bash
-TRUTH_EXTRACTION_MODEL=gpt-4o-mini \
+# .env
+TRUTH_VERIFICATION_MODELS=["gpt-4o","claude-sonnet-4-5"]
+TRUTH_CONFIDENCE_THRESHOLD=0.8
+TRUTH_ENABLE_WEB_SEARCH=false
+
+# Uses .env defaults
+truth-eval README.md
+
+# Overrides only the models
+truth-eval README.md --model gpt-4o
+```
+
+### Flag Precedence
+
+1. CLI flag (explicit) → wins
+2. `.env` file value
+3. Built-in default
+
+### Boolean Flags
+
+Use `--flag` or `--no-flag`:
+
+```bash
+# Explicitly disable web search (overrides .env)
+truth-eval README.md --no-web-search
+
+# Explicitly enable human review (overrides .env)
+truth-eval README.md --human-review
+```
+
+## Environment Variables
+
+Override defaults inline:
+
+```bash
+TRUTH_CLAIM_EXTRACTION_MODEL=gpt-4o-mini \
 TRUTH_CONFIDENCE_THRESHOLD=0.6 \
 truth-eval README.md
 ```

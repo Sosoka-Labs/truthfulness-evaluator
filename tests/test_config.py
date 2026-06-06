@@ -11,7 +11,7 @@ class TestEvaluatorConfig:
         config = EvaluatorConfig()
 
         # Model configuration
-        assert config.extraction_model == "gpt-4o-mini"
+        assert config.claim_extraction_model == "gpt-4o-mini"
         assert config.verification_models == ["gpt-4o", "claude-sonnet-4-5"]
         assert config.consensus_method == "weighted"
         assert config.confidence_threshold == 0.7
@@ -48,7 +48,7 @@ class TestEvaluatorConfig:
     def test_config_custom_values(self):
         """Test creating config with custom values."""
         config = EvaluatorConfig(
-            extraction_model="gpt-4o",
+            claim_extraction_model="gpt-4o",
             verification_models=["claude-opus-4-6"],
             consensus_method="simple",
             confidence_threshold=0.85,
@@ -58,7 +58,7 @@ class TestEvaluatorConfig:
             openai_api_key="custom-key",
         )
 
-        assert config.extraction_model == "gpt-4o"
+        assert config.claim_extraction_model == "gpt-4o"
         assert config.verification_models == ["claude-opus-4-6"]
         assert config.consensus_method == "simple"
         assert config.confidence_threshold == 0.85
@@ -143,13 +143,13 @@ class TestEvaluatorConfig:
         assert config.openai_api_key == ""
         assert config.anthropic_api_key == ""
 
-    def test_config_env_var_override_extraction_model(self, monkeypatch):
+    def test_config_env_var_override_claim_extraction_model(self, monkeypatch):
         """Test that TRUTH_ prefixed env vars override defaults."""
-        monkeypatch.setenv("TRUTH_EXTRACTION_MODEL", "custom-extraction-model")
+        monkeypatch.setenv("TRUTH_CLAIM_EXTRACTION_MODEL", "custom-extraction-model")
 
         config = EvaluatorConfig()
 
-        assert config.extraction_model == "custom-extraction-model"
+        assert config.claim_extraction_model == "custom-extraction-model"
 
     def test_config_env_var_override_confidence_threshold(self, monkeypatch):
         """Test that TRUTH_ prefixed env vars work for float values."""
@@ -198,18 +198,18 @@ class TestGetConfig:
         """Test that get_config returns config with default values."""
         config = get_config()
 
-        assert config.extraction_model == "gpt-4o-mini"
+        assert config.claim_extraction_model == "gpt-4o-mini"
         assert config.consensus_method == "weighted"
         assert config.confidence_threshold == 0.7
 
     def test_get_config_respects_env_vars(self, monkeypatch):
         """Test that get_config respects environment variables."""
-        monkeypatch.setenv("TRUTH_EXTRACTION_MODEL", "custom-model")
+        monkeypatch.setenv("TRUTH_CLAIM_EXTRACTION_MODEL", "custom-model")
         monkeypatch.setenv("TRUTH_CONFIDENCE_THRESHOLD", "0.9")
 
         config = get_config()
 
-        assert config.extraction_model == "custom-model"
+        assert config.claim_extraction_model == "custom-model"
         assert config.confidence_threshold == 0.9
 
     def test_get_config_multiple_calls_return_new_instances(self):

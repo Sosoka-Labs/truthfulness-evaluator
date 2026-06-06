@@ -39,7 +39,7 @@ async def extract_claims_node(state: TruthfulnessState) -> dict:
     config = get_config_from_state(state)
 
     # Use simple extraction for now (RefChecker has dependency issues)
-    extractor = SimpleClaimExtractionChain(model=config.extraction_model)
+    extractor = SimpleClaimExtractionChain(model=config.claim_extraction_model)
 
     claims = await extractor.extract(state["document"], state["document_path"])
 
@@ -122,7 +122,7 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
     if evidence:
         from ..chains.evidence import EvidenceProcessor
 
-        processor = EvidenceProcessor(model=config.extraction_model)
+        processor = EvidenceProcessor(model=config.claim_extraction_model)
 
         try:
             evidence, analysis = await processor.analyze_evidence(claim, evidence)

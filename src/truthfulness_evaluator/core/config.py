@@ -16,7 +16,7 @@ class EvaluatorConfig(BaseSettings):
     )
 
     # Model configuration
-    extraction_model: str = "gpt-4o-mini"
+    claim_extraction_model: str = "gpt-4o-mini"
     verification_models: list[str] = ["gpt-4o", "claude-sonnet-4-5"]
     consensus_method: Literal["simple", "weighted", "ice"] = "weighted"
     confidence_threshold: float = 0.7
@@ -41,6 +41,7 @@ class EvaluatorConfig(BaseSettings):
     # API Keys (loaded from environment)
     openai_api_key: str = ""
     anthropic_api_key: str = ""
+    fireworks_api_key: str = ""
 
     def model_post_init(self, __context: Any) -> None:
         """Fallback to standard env vars if TRUTH_ prefix not used."""
@@ -48,6 +49,8 @@ class EvaluatorConfig(BaseSettings):
             self.openai_api_key = os.getenv("OPENAI_API_KEY", "")
         if not self.anthropic_api_key:
             self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "")
+        if not self.fireworks_api_key:
+            self.fireworks_api_key = os.getenv("FIREWORKS_API_KEY", "")
 
 
 def get_config() -> EvaluatorConfig:
