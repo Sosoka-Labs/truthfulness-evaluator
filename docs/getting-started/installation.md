@@ -77,5 +77,5 @@ pip install -U duckduckgo-search
 Use cheaper models for extraction:
 
 ```bash
-export TRUTH_EXTRACTION_MODEL=gpt-4o-mini
+export TRUTH_CLAIM_EXTRACTION_MODEL=gpt-4o-mini
 ```

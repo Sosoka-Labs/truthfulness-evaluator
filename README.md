@@ -59,7 +59,7 @@ graph TD
 
 ## Key Features
 
-- **Multi-Model Consensus** - GPT-4o, Claude, and other models vote independently on verdicts, reducing hallucination risk through ensemble verification
+- **Multi-Model Consensus** - GPT-4o, Claude, Fireworks AI, and other models vote independently on verdicts, reducing hallucination risk through ensemble verification
 - **Filesystem Evidence** - React agent browses your codebase, reads source files, and follows imports to verify code-specific claims
 - **Web Search Integration** - DuckDuckGo search for external fact verification with URL fetching and content analysis
 - **Pluggable Workflows** - Composable extractors, gatherers, verifiers, and formatters with built-in presets (external, full, quick, internal)
@@ -93,7 +93,10 @@ Optional (for multi-model consensus):
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
+export FIREWORKS_API_KEY="fw_..."
 ```
+
+Or use a `.env` file (see `.env.example` for all options).
 
 ### Basic Usage
 
