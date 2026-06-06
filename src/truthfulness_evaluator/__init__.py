@@ -1,6 +1,11 @@
 """Truthfulness Evaluator - Multi-model claim verification with filesystem-aware evidence gathering."""
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("truthfulness-evaluator")
+except PackageNotFoundError:
+    __version__ = "0.1.0"
 
 # Legacy graph constructor
 # Protocols
@@ -27,6 +32,7 @@ from .strategies.gatherers import CompositeGatherer, FilesystemGatherer, WebSear
 from .strategies.verifiers import ConsensusVerifier, InternalVerifier, SingleModelVerifier
 
 __all__ = [
+    "__version__",
     # Legacy
     "create_truthfulness_graph",
     # Domain models
