@@ -1,5 +1,6 @@
 """Filesystem tools for evidence gathering."""
 
+import re
 from pathlib import Path
 
 from langchain_core.tools import tool
@@ -154,8 +155,6 @@ def get_filesystem_tools(root_path: str):
             related = []
 
             # Look for common reference patterns
-            import re
-
             # Python imports
             python_imports = re.findall(r"(?:from|import)\s+(\S+)", content)
             for imp in python_imports[:10]:

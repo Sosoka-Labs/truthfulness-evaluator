@@ -6,9 +6,17 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
 
-from ...core.config import EvaluatorConfig
-from ...core.logging_config import get_logger
-from ...models import Claim, Evidence, TruthfulnessReport, VerificationResult
+from truthfulness_evaluator.core.config import EvaluatorConfig
+from truthfulness_evaluator.core.grading import build_report
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.evidence.tools.web_search import WebEvidenceGatherer
+from truthfulness_evaluator.llm.chains.consensus import ConsensusChain
+from truthfulness_evaluator.llm.chains.extraction import SimpleClaimExtractionChain
+from truthfulness_evaluator.llm.chains.internal_verification import (
+    ClaimClassifier,
+    InternalVerificationChain,
+)
+from truthfulness_evaluator.models import Claim, Evidence, TruthfulnessReport, VerificationResult
 
 logger = get_logger()
 
@@ -36,9 +44,6 @@ def get_config_from_state(state: InternalVerificationState) -> EvaluatorConfig:
 
 async def extract_and_classify_claims_node(state: InternalVerificationState) -> dict:
     """Extract claims and classify as external vs internal."""
-    from ..chains.extraction import SimpleClaimExtractionChain
-    from ..chains.internal_verification import ClaimClassifier
-
     config = get_config_from_state(state)
 
     # Extract claims
@@ -119,13 +124,9 @@ async def _verify_external(
     claim: Claim, state: InternalVerificationState, config: EvaluatorConfig
 ) -> VerificationResult:
     """Verify using external sources (web search)."""
-    from ..chains.consensus import ConsensusChain
-
     # Gather web evidence
     evidence = []
     if config.enable_web_search:
-        from ...evidence.tools.web_search import WebEvidenceGatherer
-
         try:
             gatherer = WebEvidenceGatherer()
             web_evidence = await gatherer.gather_evidence(claim.text, max_results=2)
@@ -154,8 +155,6 @@ async def _verify_internal(
     claim: Claim, state: InternalVerificationState, config: EvaluatorConfig
 ) -> VerificationResult:
     """Verify using internal codebase."""
-    from ..chains.internal_verification import ClaimClassifier, InternalVerificationChain
-
     if not state["root_path"]:
         return VerificationResult(
             claim_id=claim.id,
@@ -189,8 +188,6 @@ def should_continue(state: InternalVerificationState) -> str:
 
 async def generate_report_node(state: InternalVerificationState) -> dict:
     """Generate final truthfulness report."""
-    from ...core.grading import build_report
-
     verifications = state["verifications"]
     claims = state["claims"]
 

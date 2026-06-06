@@ -2,7 +2,7 @@
 
 from typing import Any, Protocol, runtime_checkable
 
-from ..models import Claim, Evidence, TruthfulnessReport, VerificationResult
+from truthfulness_evaluator.models import Claim, Evidence, TruthfulnessReport, VerificationResult
 
 __all__ = [
     "ClaimExtractor",

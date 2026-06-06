@@ -1,6 +1,6 @@
 """JSON report formatter."""
 
-from ...models import TruthfulnessReport
+from truthfulness_evaluator.models import TruthfulnessReport
 
 
 class JsonFormatter:

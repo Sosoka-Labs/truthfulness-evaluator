@@ -1,7 +1,7 @@
 """Triplet-based claim extraction adapter."""
 
-from ...llm.chains.extraction import TripletExtractionChain
-from ...models import Claim
+from truthfulness_evaluator.llm.chains.extraction import TripletExtractionChain
+from truthfulness_evaluator.models import Claim
 
 
 class TripletExtractor:

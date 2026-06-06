@@ -1,7 +1,9 @@
 """Workflow registry with built-in presets and plugin support."""
 
-from ...core.logging_config import get_logger
-from .config import WorkflowConfig
+from importlib.metadata import entry_points
+
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
 
 logger = get_logger()
 
@@ -83,8 +85,6 @@ class WorkflowRegistry:
         cls._discovered = True
 
         try:
-            from importlib.metadata import entry_points
-
             eps = entry_points(group="truthfulness_evaluator.workflows")
             for ep in eps:
                 try:

@@ -4,7 +4,7 @@ from typing import Any
 
 from typing_extensions import TypedDict
 
-from ...models import Claim, Evidence, TruthfulnessReport, VerificationResult
+from truthfulness_evaluator.models import Claim, Evidence, TruthfulnessReport, VerificationResult
 
 
 class WorkflowState(TypedDict):

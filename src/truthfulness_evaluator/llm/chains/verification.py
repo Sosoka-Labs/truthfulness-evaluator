@@ -1,22 +1,9 @@
 """Verification chains using structured outputs."""
 
-from typing import Optional
-
-from pydantic import BaseModel, Field
-
-from ...models import Claim, Evidence, VerificationResult
-from ..factory import create_chat_model
-from ..prompts.verification import VERIFICATION_PROMPT
-
-
-# Structured output models
-class VerificationOutput(BaseModel):
-    """Structured output for claim verification."""
-
-    verdict: str = Field(description="Verdict: SUPPORTS, REFUTES, or NOT_ENOUGH_INFO")
-    confidence: float = Field(description="Confidence score from 0.0 to 1.0")
-    reasoning: str = Field(description="Detailed explanation of the verdict")
-    key_evidence: Optional[str] = Field(None, description="Most important evidence considered")
+from truthfulness_evaluator.llm.factory import create_chat_model
+from truthfulness_evaluator.llm.models import VerificationOutput
+from truthfulness_evaluator.llm.prompts.verification import VERIFICATION_PROMPT
+from truthfulness_evaluator.models import Claim, Evidence, VerificationResult
 
 
 class VerificationChain:

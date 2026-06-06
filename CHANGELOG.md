@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced all relative `..` and `...` imports with absolute `truthfulness_evaluator.*` imports throughout the codebase
+- Moved inline/dynamic imports inside functions to top-of-file imports (except optional `refchecker` dependency)
+- Extracted Pydantic models from `llm/chains/` into a new `llm/models/` package for better separation of concerns
+
 ## [0.1.0] - 2026-06-05
 
 ### Added

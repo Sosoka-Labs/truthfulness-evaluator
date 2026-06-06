@@ -1,6 +1,6 @@
 """Workflow builder for constructing LangGraph state machines."""
 
-from .config import WorkflowConfig
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
 
 
 class WorkflowBuilder:

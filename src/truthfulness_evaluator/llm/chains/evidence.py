@@ -1,34 +1,9 @@
 """Evidence processing using structured outputs."""
 
-from typing import List, Optional
-
-from pydantic import BaseModel, Field
-
-from ...models import Claim, Evidence
-from ..factory import create_chat_model
-from ..prompts.verification import EVIDENCE_ANALYSIS_PROMPT
-
-
-# Structured output models
-class EvidenceAnalysisItem(BaseModel):
-    """Analysis of a single evidence item."""
-
-    index: int = Field(description="Index of the evidence item")
-    relevance: float = Field(description="Relevance score from 0.0 to 1.0")
-    supports: Optional[bool] = Field(
-        None, description="True if supports, False if refutes, null if neutral"
-    )
-    credibility: float = Field(description="Credibility score from 0.0 to 1.0")
-    reasoning: str = Field(description="Brief reasoning for the assessment")
-
-
-class EvidenceAnalysisOutput(BaseModel):
-    """Structured output for evidence analysis."""
-
-    evidence_analysis: List[EvidenceAnalysisItem] = Field(
-        description="Analysis of each evidence item"
-    )
-    summary: str = Field(description="Overall summary of evidence quality")
+from truthfulness_evaluator.llm.factory import create_chat_model
+from truthfulness_evaluator.llm.models import EvidenceAnalysisOutput
+from truthfulness_evaluator.llm.prompts.verification import EVIDENCE_ANALYSIS_PROMPT
+from truthfulness_evaluator.models import Claim, Evidence
 
 
 class EvidenceProcessor:

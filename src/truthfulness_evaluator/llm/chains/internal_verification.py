@@ -6,34 +6,13 @@ from pathlib import Path
 from typing import Optional
 
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
 
-from ...core.logging_config import get_logger
-from ...models import Claim, Evidence, VerificationResult
-from ..factory import create_chat_model
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.llm.factory import create_chat_model
+from truthfulness_evaluator.llm.models import ClaimClassification, InternalVerificationOutput
+from truthfulness_evaluator.models import Claim, Evidence, VerificationResult
 
 logger = get_logger()
-
-
-# Structured output models
-class ClaimClassification(BaseModel):
-    """Classification of claim type."""
-
-    claim_type: str = Field(
-        description="Type: external_fact, api_signature, version_requirement, configuration, behavioral, or unknown"
-    )
-    confidence: float = Field(description="Confidence in classification (0.0-1.0)")
-    reasoning: str = Field(description="Why this classification")
-
-
-class InternalVerificationOutput(BaseModel):
-    """Output for internal verification."""
-
-    verdict: str = Field(description="SUPPORTS, REFUTES, or NOT_ENOUGH_INFO")
-    confidence: float = Field(description="Confidence 0.0-1.0")
-    reasoning: str = Field(description="Detailed explanation")
-    actual_implementation: Optional[str] = Field(None, description="What was actually found")
-    discrepancy: Optional[str] = Field(None, description="Specific discrepancy if any")
 
 
 class ClaimClassifier:

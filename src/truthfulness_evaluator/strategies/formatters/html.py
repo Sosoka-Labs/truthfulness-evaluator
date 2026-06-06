@@ -1,6 +1,7 @@
 """HTML report formatter."""
 
-from ...models import TruthfulnessReport
+from truthfulness_evaluator.models import TruthfulnessReport
+from truthfulness_evaluator.reporting.generator import ReportGenerator
 
 
 class HtmlFormatter:
@@ -8,8 +9,6 @@ class HtmlFormatter:
 
     def format(self, report: TruthfulnessReport) -> str:
         """Format a truthfulness report as HTML."""
-        from ...reporting.generator import ReportGenerator
-
         gen = ReportGenerator(report)
         return gen.to_html()
 

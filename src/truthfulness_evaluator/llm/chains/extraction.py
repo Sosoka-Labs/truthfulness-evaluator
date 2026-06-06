@@ -2,9 +2,7 @@
 
 import asyncio
 import re
-from typing import List, Optional
-
-from pydantic import BaseModel, Field
+from typing import Optional
 
 try:
     from refchecker.extractor import LLMExtractor
@@ -13,10 +11,17 @@ try:
 except ImportError:
     REFCHECKER_AVAILABLE = False
 
-from ...core.logging_config import get_logger
-from ...models import Claim
-from ..factory import create_chat_model
-from ..prompts.extraction import CLAIM_EXTRACTION_PROMPT, TRIPLET_EXTRACTION_PROMPT
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.llm.factory import create_chat_model
+from truthfulness_evaluator.llm.models import (
+    ClaimExtractionOutput,
+    TripletExtractionOutput,
+)
+from truthfulness_evaluator.llm.prompts.extraction import (
+    CLAIM_EXTRACTION_PROMPT,
+    TRIPLET_EXTRACTION_PROMPT,
+)
+from truthfulness_evaluator.models import Claim
 
 logger = get_logger()
 
@@ -48,35 +53,6 @@ def strip_example_blocks(text: str) -> str:
     # Inline code spans
     text = re.sub(r"`[^`]+`", "", text)
     return text
-
-
-# Structured output models
-class ExtractedClaim(BaseModel):
-    """A single extracted claim."""
-
-    text: str = Field(description="The claim text")
-    claim_type: str = Field(description="Type: explicit, implicit, or inferred")
-
-
-class ClaimExtractionOutput(BaseModel):
-    """Output structure for claim extraction."""
-
-    claims: List[ExtractedClaim] = Field(description="List of extracted claims")
-
-
-class KnowledgeTriplet(BaseModel):
-    """Subject-relation-object triplet."""
-
-    subject: str = Field(description="The subject of the claim")
-    relation: str = Field(description="The relationship/action")
-    object: str = Field(description="The object/target")
-    context: Optional[str] = Field(None, description="Additional context")
-
-
-class TripletExtractionOutput(BaseModel):
-    """Output structure for triplet extraction."""
-
-    triplets: List[KnowledgeTriplet] = Field(description="List of knowledge triplets")
 
 
 class ClaimExtractionChain:
