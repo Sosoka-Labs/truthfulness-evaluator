@@ -52,7 +52,8 @@ Truthfulness Evaluator — Python CLI and library for multi-model claim verifica
 - **CI triggers:** pushes and PRs to `main` and `develop`.
 - **CI job order:** lint (Ruff) → format check (Black) → tests (pytest excluding e2e).
 - **Branch model:** `main` = stable releases; `develop` = active development. Feature branches branch from `develop` and PRs target `develop`. Releases are merged from `develop` → `main` via PR.
-- **Merging workflow:** New work → feature branch → PR to `develop` → PR `develop` → `main` for release.
+- **Merging workflow:** New work → feature branch → PR to `develop` → PR `develop` → `main` for release → tag `vX.Y.Z` → fast-forward `develop` to `main` so both branches align.
+- **No release branches:** Releases are cut by PRing `develop` directly to `main`. Do not create `release/*` branches.
 - **Conventional commits:** `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
 - **AI code review:** All PRs trigger `Sosoka-Labs/.github/.github/workflows/ai-code-review.yml@main` via `OPENAI_API_KEY` secret.
 - **Docs deploy:** `mkdocs build --strict` → GitHub Pages on every push to `main` that touches `docs/**`, `mkdocs.yml`, or `src/**`.
