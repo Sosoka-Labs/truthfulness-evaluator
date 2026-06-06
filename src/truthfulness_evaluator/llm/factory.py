@@ -10,13 +10,14 @@ logger = get_logger()
 
 _ANTHROPIC_HINTS = ("claude", "anthropic")
 _OPENAI_HINTS = ("gpt", "o1", "o3", "o4", "openai")
+_FIREWORKS_HINTS = ("fireworks", "accounts/fireworks")
 
 
 def _detect_provider(model_name: str, **kwargs: object) -> str:
     """Detect LLM provider from model name.
 
     Returns:
-        Provider key: "anthropic", "openai", or "openai-compatible".
+        Provider key: "anthropic", "openai", "fireworks", or "openai-compatible".
 
     Raises:
         ValueError: If provider cannot be determined.
@@ -29,12 +30,15 @@ def _detect_provider(model_name: str, **kwargs: object) -> str:
     if any(hint in model_lower for hint in _OPENAI_HINTS):
         return "openai"
 
+    if any(hint in model_lower for hint in _FIREWORKS_HINTS):
+        return "fireworks"
+
     if "base_url" in kwargs:
         return "openai-compatible"
 
     raise ValueError(
         f"Cannot determine provider for model '{model_name}'. "
-        f"Expected model name containing one of {_ANTHROPIC_HINTS + _OPENAI_HINTS}, "
+        f"Expected model name containing one of {_ANTHROPIC_HINTS + _OPENAI_HINTS + _FIREWORKS_HINTS}, "
         f"or pass 'base_url' for OpenAI-compatible APIs."
     )
 
@@ -68,6 +72,11 @@ def create_chat_model(
         from langchain_anthropic import ChatAnthropic
 
         return ChatAnthropic(model=model_name, temperature=temperature, **kwargs)
+
+    if provider == "fireworks":
+        from langchain_fireworks import ChatFireworks
+
+        return ChatFireworks(model=model_name, temperature=temperature, **kwargs)
 
     from langchain_openai import ChatOpenAI
 
