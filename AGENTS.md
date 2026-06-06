@@ -26,6 +26,7 @@ Truthfulness Evaluator — Python CLI and library for multi-model claim verifica
 - **Required env vars:** `OPENAI_API_KEY` (required to run anything real). `ANTHROPIC_API_KEY` optional for multi-model consensus.
 - **Config prefix:** `TRUTH_` (e.g., `TRUTH_EXTRACTION_MODEL`, `TRUTH_CONFIDENCE_THRESHOLD`).
 - **Copy `.env.example` to `.env`** for local development.
+- **CLI respects `.env`:** `get_config()` loads `.env` first; CLI flags override only explicitly provided values. The `--model`, `--confidence`, `--web-search/--no-web-search`, and `--human-review/--no-human-review` flags all default to `None` (use `.env` value) rather than hardcoded defaults.
 
 ## Development Commands
 

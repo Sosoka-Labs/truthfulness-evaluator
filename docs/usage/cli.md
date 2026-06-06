@@ -143,9 +143,44 @@ Self-contained HTML with styling.
 | 0 | Success |
 | 1 | Error (file not found, API error, etc.) |
 
+## Configuration File
+
+The CLI reads `.env` automatically. CLI flags override `.env` values.
+
+```bash
+# .env
+TRUTH_VERIFICATION_MODELS=["gpt-4o","claude-sonnet-4-5"]
+TRUTH_CONFIDENCE_THRESHOLD=0.8
+TRUTH_ENABLE_WEB_SEARCH=false
+
+# Uses .env defaults
+truth-eval README.md
+
+# Overrides only the models
+truth-eval README.md --model gpt-4o
+```
+
+### Flag Precedence
+
+1. CLI flag (explicit) → wins
+2. `.env` file value
+3. Built-in default
+
+### Boolean Flags
+
+Use `--flag` or `--no-flag`:
+
+```bash
+# Explicitly disable web search (overrides .env)
+truth-eval README.md --no-web-search
+
+# Explicitly enable human review (overrides .env)
+truth-eval README.md --human-review
+```
+
 ## Environment Variables
 
-Override defaults:
+Override defaults inline:
 
 ```bash
 TRUTH_CLAIM_EXTRACTION_MODEL=gpt-4o-mini \
