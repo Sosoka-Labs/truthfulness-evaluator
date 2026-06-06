@@ -61,17 +61,17 @@ poetry run mypy src/
 ## Branch Workflow
 
 1. **Fork** the repository
-2. **Create a feature branch** from `dev` (not `main`):
+2. **Create a feature branch** from `develop` (not `main`):
    ```bash
-   git checkout dev
-   git pull origin dev
+   git checkout develop
+   git pull origin develop
    git checkout -b feature/your-feature-name
    ```
 3. **Make your changes** with clear, focused commits
-4. **Submit a Pull Request** targeting the `dev` branch
+4. **Submit a Pull Request** targeting the `develop` branch
 5. **Keep PRs focused** — one feature or fix per PR
 
-The `main` branch contains stable releases. Active development happens on `dev`.
+The `main` branch contains stable releases. Active development happens on `develop`.
 
 ## Commit Messages
 
