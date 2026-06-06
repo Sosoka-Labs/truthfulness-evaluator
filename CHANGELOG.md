@@ -15,18 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--web-search/--no-web-search` and `--human-review/--no-human-review` boolean flag pairs
 - Comprehensive `.env.example` with all available configuration options
 - `CHANGELOG.md` and dynamic versioning via `importlib.metadata`
+- `AGENTS.md` release process documentation
+- README.md version badge and `.env` file mention
 
 ### Changed
 
 - Renamed `extraction_model` config field to `claim_extraction_model` (env var: `TRUTH_CLAIM_EXTRACTION_MODEL`)
 - Standardized all branch references from `dev` to `develop` in documentation
-- Updated CLI docs with configuration file precedence rules and examples
+- Updated CLI docs with configuration file precedence rules, Fireworks AI examples, and `.env` defaults
+- Updated model selection table in docs to include Fireworks AI
 
 ### Fixed
 
 - CLI `--model`, `--confidence`, `--web-search`, and `--human-review` flags now default to `.env` values instead of silently overriding them
+- All documentation references to `TRUTH_EXTRACTION_MODEL` updated to `TRUTH_CLAIM_EXTRACTION_MODEL`
 
-## [0.1.0] - 2024-XX-XX
+## [0.1.0] - 2026-02-21
 
 ### Added
 
