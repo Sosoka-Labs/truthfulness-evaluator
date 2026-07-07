@@ -1,8 +1,8 @@
 """Multi-model consensus verification adapter."""
 
-from ...core.logging_config import get_logger
-from ...llm.chains.consensus import ConsensusChain
-from ...models import Claim, Evidence, VerificationResult
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.llm.chains.consensus import ConsensusChain
+from truthfulness_evaluator.models import Claim, Evidence, VerificationResult
 
 logger = get_logger()
 

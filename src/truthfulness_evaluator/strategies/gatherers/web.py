@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from ...core.logging_config import get_logger
-from ...evidence.tools.web_search import WebEvidenceGatherer
-from ...models import Claim, Evidence
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.evidence.tools.web_search import WebEvidenceGatherer
+from truthfulness_evaluator.models import Claim, Evidence
 
 logger = get_logger()
 

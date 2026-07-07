@@ -5,7 +5,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from ..models import TruthfulnessReport
+from truthfulness_evaluator.models import TruthfulnessReport
 
 
 def _format_percent(value: float) -> str:

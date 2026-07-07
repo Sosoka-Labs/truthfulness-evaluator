@@ -2,9 +2,12 @@
 
 from typing import Any
 
+import langchain_anthropic
+import langchain_fireworks
+import langchain_openai
 from langchain_core.language_models import BaseChatModel
 
-from ..core.logging_config import get_logger
+from truthfulness_evaluator.core.logging_config import get_logger
 
 logger = get_logger()
 
@@ -69,15 +72,13 @@ def create_chat_model(
     logger.debug("Creating %s model: %s", provider, model_name)
 
     if provider == "anthropic":
-        from langchain_anthropic import ChatAnthropic
-
-        return ChatAnthropic(model=model_name, temperature=temperature, **kwargs)
+        return langchain_anthropic.ChatAnthropic(
+            model=model_name, temperature=temperature, **kwargs
+        )
 
     if provider == "fireworks":
-        from langchain_fireworks import ChatFireworks
+        return langchain_fireworks.ChatFireworks(
+            model=model_name, temperature=temperature, **kwargs
+        )
 
-        return ChatFireworks(model=model_name, temperature=temperature, **kwargs)
-
-    from langchain_openai import ChatOpenAI
-
-    return ChatOpenAI(model=model_name, temperature=temperature, **kwargs)
+    return langchain_openai.ChatOpenAI(model=model_name, temperature=temperature, **kwargs)

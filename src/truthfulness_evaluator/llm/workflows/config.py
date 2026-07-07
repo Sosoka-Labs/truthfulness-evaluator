@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.protocols import ClaimExtractor, ClaimVerifier, EvidenceGatherer, ReportFormatter
+from truthfulness_evaluator.core.protocols import (
+    ClaimExtractor,
+    ClaimVerifier,
+    EvidenceGatherer,
+    ReportFormatter,
+)
 
 
 @dataclass

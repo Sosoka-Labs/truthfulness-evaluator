@@ -1,11 +1,23 @@
 """Built-in workflow presets."""
 
-from ...strategies.extractors import SimpleExtractor
-from ...strategies.formatters import HtmlFormatter, JsonFormatter, MarkdownFormatter
-from ...strategies.gatherers import CompositeGatherer, FilesystemGatherer, WebSearchGatherer
-from ...strategies.verifiers import ConsensusVerifier, InternalVerifier, SingleModelVerifier
-from .config import WorkflowConfig
-from .registry import WorkflowRegistry
+from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
+from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
+from truthfulness_evaluator.strategies.extractors import SimpleExtractor
+from truthfulness_evaluator.strategies.formatters import (
+    HtmlFormatter,
+    JsonFormatter,
+    MarkdownFormatter,
+)
+from truthfulness_evaluator.strategies.gatherers import (
+    CompositeGatherer,
+    FilesystemGatherer,
+    WebSearchGatherer,
+)
+from truthfulness_evaluator.strategies.verifiers import (
+    ConsensusVerifier,
+    InternalVerifier,
+    SingleModelVerifier,
+)
 
 
 def register_builtin_presets() -> None:

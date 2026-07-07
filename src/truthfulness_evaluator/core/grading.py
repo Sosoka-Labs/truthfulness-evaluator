@@ -1,6 +1,11 @@
 """Grading and summary logic for truthfulness reports."""
 
-from ..models import Claim, TruthfulnessReport, TruthfulnessStatistics, VerificationResult
+from truthfulness_evaluator.models import (
+    Claim,
+    TruthfulnessReport,
+    TruthfulnessStatistics,
+    VerificationResult,
+)
 
 
 def is_verified(

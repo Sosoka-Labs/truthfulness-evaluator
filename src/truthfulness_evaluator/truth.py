@@ -9,10 +9,11 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .core.config import get_config
-from .llm.workflows.graph import create_truthfulness_graph
-from .llm.workflows.graph_internal import create_internal_verification_graph
-from .reporting import ReportGenerator
+from truthfulness_evaluator import __version__
+from truthfulness_evaluator.core.config import get_config
+from truthfulness_evaluator.llm.workflows.graph import create_truthfulness_graph
+from truthfulness_evaluator.llm.workflows.graph_internal import create_internal_verification_graph
+from truthfulness_evaluator.reporting import ReportGenerator
 
 app = typer.Typer(help="Truthfulness Evaluator - Verify claims in documents")
 console = Console()
@@ -205,8 +206,6 @@ def evaluate(
 @app.command()
 def version():
     """Show version information."""
-    from . import __version__
-
     console.print(f"Truthfulness Evaluator v{__version__}")
 
 

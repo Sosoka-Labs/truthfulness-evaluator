@@ -3,9 +3,9 @@
 import asyncio
 from collections import Counter
 
-from ...core.logging_config import get_logger
-from ...models import Claim, Evidence, Verdict, VerificationResult
-from .verification import VerificationChain
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.llm.chains.verification import VerificationChain
+from truthfulness_evaluator.models import Claim, Evidence, Verdict, VerificationResult
 
 logger = get_logger()
 

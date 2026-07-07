@@ -1,8 +1,8 @@
 """Single-model verification adapter."""
 
-from ...core.logging_config import get_logger
-from ...llm.chains.verification import VerificationChain
-from ...models import Claim, Evidence, VerificationResult
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.llm.chains.verification import VerificationChain
+from truthfulness_evaluator.models import Claim, Evidence, VerificationResult
 
 logger = get_logger()
 

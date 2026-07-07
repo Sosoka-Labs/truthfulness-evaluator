@@ -3,9 +3,9 @@
 import asyncio
 from typing import Any
 
-from ...core.logging_config import get_logger
-from ...core.protocols import EvidenceGatherer
-from ...models import Claim, Evidence
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.core.protocols import EvidenceGatherer
+from truthfulness_evaluator.models import Claim, Evidence
 
 logger = get_logger()
 

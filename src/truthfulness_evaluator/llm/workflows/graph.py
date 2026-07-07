@@ -5,9 +5,15 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from typing_extensions import TypedDict
 
-from ...core.config import EvaluatorConfig
-from ...core.logging_config import get_logger
-from ...models import Claim, Evidence, TruthfulnessReport, VerificationResult
+from truthfulness_evaluator.core.config import EvaluatorConfig
+from truthfulness_evaluator.core.grading import build_report
+from truthfulness_evaluator.core.logging_config import get_logger
+from truthfulness_evaluator.evidence.agent import FilesystemEvidenceAgent
+from truthfulness_evaluator.evidence.tools.web_search import WebEvidenceGatherer
+from truthfulness_evaluator.llm.chains.consensus import ConsensusChain
+from truthfulness_evaluator.llm.chains.evidence import EvidenceProcessor
+from truthfulness_evaluator.llm.chains.extraction import SimpleClaimExtractionChain
+from truthfulness_evaluator.models import Claim, Evidence, TruthfulnessReport, VerificationResult
 
 logger = get_logger()
 
@@ -34,8 +40,6 @@ def get_config_from_state(state: TruthfulnessState) -> EvaluatorConfig:
 # Node implementations
 async def extract_claims_node(state: TruthfulnessState) -> dict:
     """Extract claims from document."""
-    from ..chains.extraction import SimpleClaimExtractionChain
-
     config = get_config_from_state(state)
 
     # Use simple extraction for now (RefChecker has dependency issues)
@@ -67,8 +71,6 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
 
     # Filesystem search
     if config.enable_filesystem_search and state["root_path"]:
-        from ...evidence.agent import FilesystemEvidenceAgent
-
         try:
             agent = FilesystemEvidenceAgent(state["root_path"])
             fs_evidence = await agent.search(claim.text)
@@ -91,8 +93,6 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
 
     # Web search
     if config.enable_web_search:
-        from ...evidence.tools.web_search import WebEvidenceGatherer
-
         try:
             gatherer = WebEvidenceGatherer()
             web_evidence = await gatherer.gather_evidence(claim.text, max_results=3)
@@ -120,8 +120,6 @@ async def search_evidence_node(state: TruthfulnessState) -> dict:
 
     # Process and analyze evidence
     if evidence:
-        from ..chains.evidence import EvidenceProcessor
-
         processor = EvidenceProcessor(model=config.claim_extraction_model)
 
         try:
@@ -157,8 +155,6 @@ async def verify_claim_node(state: TruthfulnessState) -> dict:
     evidence = state.get("evidence_cache", {}).get(claim.id, [])
 
     logger.info(f"Verifying: {claim.text[:60]}...")
-
-    from ..chains.consensus import ConsensusChain
 
     consensus = ConsensusChain(
         model_names=config.verification_models, confidence_threshold=config.confidence_threshold
@@ -214,8 +210,6 @@ def should_continue(state: TruthfulnessState) -> str:
 
 async def generate_report_node(state: TruthfulnessState) -> dict:
     """Generate final truthfulness report."""
-    from ...core.grading import build_report
-
     verifications = state["verifications"]
     claims = state["claims"]
 

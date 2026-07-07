@@ -1,7 +1,7 @@
 """Simple claim extraction adapter."""
 
-from ...llm.chains.extraction import SimpleClaimExtractionChain
-from ...models import Claim
+from truthfulness_evaluator.llm.chains.extraction import SimpleClaimExtractionChain
+from truthfulness_evaluator.models import Claim
 
 
 class SimpleExtractor:

@@ -2,6 +2,9 @@
 
 import re
 
+import requests
+from bs4 import BeautifulSoup
+from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.tools import tool
 
 
@@ -21,8 +24,6 @@ def get_web_search_tools():
         """
         try:
             # Try DuckDuckGo first (no API key needed)
-            from langchain_community.tools import DuckDuckGoSearchRun
-
             search = DuckDuckGoSearchRun()
             results = search.run(query)
 
@@ -42,9 +43,6 @@ def get_web_search_tools():
             Extracted text content
         """
         try:
-            import requests
-            from bs4 import BeautifulSoup
-
             headers = {"User-Agent": "Mozilla/5.0 (compatible; TruthfulnessEvaluator/0.1)"}
 
             response = requests.get(url, headers=headers, timeout=10)
