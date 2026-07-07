@@ -6,7 +6,7 @@ The Truthfulness Evaluator now supports a pluggable workflow architecture that a
 
 ### Using Built-In Presets
 
-Four preset workflows are available out of the box:
+Five preset workflows are available out of the box:
 
 ```python
 from truthfulness_evaluator.llm.workflows.presets import register_builtin_presets
@@ -24,10 +24,21 @@ quick_config = WorkflowRegistry.get("quick")
 # Use full verification (web + filesystem + consensus)
 full_config = WorkflowRegistry.get("full")
 
+# Use precise verification (span-grounded extraction that quotes the
+# source verbatim, with web + filesystem evidence and consensus)
+precise_config = WorkflowRegistry.get("precise")
+
 # Use internal verification (codebase alignment)
 from truthfulness_evaluator.llm.workflows.presets import create_internal_config
 internal_config = create_internal_config(root_path="/path/to/project")
 ```
+
+!!! tip "Avoiding misquotes"
+    The `precise` preset uses `SentenceSelectionExtractor`, which has the model
+    select claim-bearing sentences *by index* rather than rewriting them. Claim
+    text is sliced verbatim from the source, so the evaluator never verifies a
+    paraphrased or fabricated version of a claim. See the
+    [architecture guide](../architecture/workflows.md#span-grounded-extraction-sentenceselectionextractor).
 
 ### Creating Custom Workflows
 
@@ -35,7 +46,7 @@ Compose your own workflows from adapter strategies:
 
 ```python
 from truthfulness_evaluator.llm.workflows.config import WorkflowConfig
-from truthfulness_evaluator import SimpleExtractor
+from truthfulness_evaluator import SentenceSelectionExtractor
 from truthfulness_evaluator import WebSearchGatherer, FilesystemGatherer, CompositeGatherer
 from truthfulness_evaluator import ConsensusVerifier
 from truthfulness_evaluator import JsonFormatter, MarkdownFormatter
@@ -43,7 +54,8 @@ from truthfulness_evaluator import JsonFormatter, MarkdownFormatter
 config = WorkflowConfig(
     name="custom",
     description="Custom verification pipeline.",
-    extractor=SimpleExtractor(model="gpt-4o"),
+    # Span-grounded extraction keeps claim text verbatim from the source.
+    extractor=SentenceSelectionExtractor(model="gpt-4o"),
     gatherers=[CompositeGatherer([
         WebSearchGatherer(max_results=5),
         FilesystemGatherer()

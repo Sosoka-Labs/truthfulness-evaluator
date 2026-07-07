@@ -65,6 +65,46 @@ Return structured triplets with subject, relation, object, and optional context.
     ]
 )
 
+# Sentence-index selection - the model SELECTS sentences by index rather than
+# rewriting them, so the verbatim source wording is preserved by construction.
+SENTENCE_SELECTION_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are a claim extraction specialist. You are given a document that has \
+already been split into numbered sentences. Your job is to SELECT which sentences assert \
+a factual claim -- you must NOT rewrite, paraphrase, or invent sentence text.
+
+A factual claim is a statement that can be objectively verified as true or false. Select \
+sentences that:
+- Make assertions about facts, dates, numbers, versions, or properties
+- Can be verified through evidence
+
+Do NOT select sentences that are opinions, predictions, questions, headings, or purely \
+structural/navigational text.
+
+For each selected sentence, return:
+1. index: the integer index of the sentence exactly as shown in brackets
+2. claim_type: "explicit" (directly stated), "implicit" (inferred), or "inferred" \
+(requires reasoning)
+3. normalized_claim: OPTIONAL concise atomic restatement of the claim. This is a \
+convenience only and never replaces the original sentence; omit it if the sentence is \
+already atomic.
+
+CRITICAL: Only return indices that appear in the list below. Never fabricate an index or \
+alter sentence wording.""",
+        ),
+        (
+            "user",
+            """Select the sentences that assert verifiable factual claims:
+
+{sentences}
+
+Return the indices of claim-bearing sentences.""",
+        ),
+    ]
+)
+
 # Domain-specific extraction prompts
 SCIENTIFIC_CLAIM_PROMPT = ChatPromptTemplate.from_messages(
     [

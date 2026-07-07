@@ -15,6 +15,11 @@ class Claim(BaseModel):
         default=None, description="Character span in source (start, end)"
     )
     context: Optional[str] = Field(default=None, description="Surrounding context for the claim")
+    normalized_text: Optional[str] = Field(
+        default=None,
+        description="Optional atomic restatement of the claim, kept separate from the "
+        "verbatim quote in `text` so the original wording is never lost",
+    )
     claim_type: Literal["explicit", "implicit", "inferred"] = Field(
         default="explicit", description="Type of claim"
     )

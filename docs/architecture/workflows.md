@@ -126,12 +126,13 @@ Different implementations produce different formats: JSON (machine-readable), Ma
 
 ## Built-In Adapters
 
-The system provides 11 built-in adapters implementing the protocol interfaces:
+The system provides 12 built-in adapters implementing the protocol interfaces:
 
 | Adapter | Protocol | Description |
 |---------|----------|-------------|
 | `SimpleExtractor` | `ClaimExtractor` | LLM-based extraction with general-purpose prompts |
 | `TripletExtractor` | `ClaimExtractor` | Structured subject-relation-object triplet extraction |
+| `SentenceSelectionExtractor` | `ClaimExtractor` | Span-grounded extraction; the model selects sentence indices and claim text is sliced verbatim from the source |
 | `WebSearchGatherer` | `EvidenceGatherer` | DuckDuckGo web search with URL content fetching |
 | `FilesystemGatherer` | `EvidenceGatherer` | React agent with file exploration tools |
 | `CompositeGatherer` | `EvidenceGatherer` | Runs multiple gatherers in parallel, deduplicates results |
@@ -141,6 +142,34 @@ The system provides 11 built-in adapters implementing the protocol interfaces:
 | `JsonFormatter` | `ReportFormatter` | Machine-readable JSON output |
 | `MarkdownFormatter` | `ReportFormatter` | Human-readable Markdown reports |
 | `HtmlFormatter` | `ReportFormatter` | Presentation-ready HTML with Jinja2 templates |
+
+### Span-Grounded Extraction (`SentenceSelectionExtractor`)
+
+`SimpleExtractor` and `TripletExtractor` ask the LLM to *write* the claim text. Nothing
+constrains that output to the source wording, so the model can paraphrase — or fabricate —
+a claim the document never made. For a truthfulness tool, verifying a misquoted claim is a
+correctness bug.
+
+`SentenceSelectionExtractor` closes that gap by making the LLM **select** rather than
+**generate**:
+
+1. The document is deterministically split into numbered sentences by
+   `core/segmentation.py`. Each `Sentence` carries its character offsets and satisfies the
+   invariant `document[start:end] == text`.
+2. Fenced code blocks and inline code are stripped *before* segmentation, so illustrative
+   example claims never receive an index and cannot be selected.
+3. The LLM returns only the **indices** of claim-bearing sentences, each with a claim type
+   and an optional `normalized_claim` (a concise atomic restatement).
+4. Claim text is sliced from the source by offset — so it is guaranteed to quote the
+   document verbatim — and `Claim.source_span` is populated. Any hallucinated,
+   out-of-range, or duplicate index is dropped.
+
+The optional atomic restatement is stored in the new `Claim.normalized_text` field, kept
+separate from the verbatim quote in `Claim.text` so the original wording is never lost.
+
+**Trade-off:** selection is at sentence granularity, so a claim is a whole verbatim
+sentence rather than a sub-sentence atomic fact. When a finer-grained assertion is needed,
+`normalized_text` provides it alongside the exact quote.
 
 ### Adapter Initialization
 
@@ -154,6 +183,7 @@ from truthfulness_evaluator import SingleModelVerifier, ConsensusVerifier
 # Extractors
 simple = SimpleExtractor(model="gpt-4o-mini")
 triplet = TripletExtractor(model="gpt-4o")
+span_grounded = SentenceSelectionExtractor(model="gpt-4o-mini")
 
 # Gatherers
 web = WebSearchGatherer(max_results=5)

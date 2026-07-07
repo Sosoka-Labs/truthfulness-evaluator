@@ -62,7 +62,8 @@ graph TD
 - **Multi-Model Consensus** - GPT-4o, Claude, Fireworks AI, and other models vote independently on verdicts, reducing hallucination risk through ensemble verification
 - **Filesystem Evidence** - React agent browses your codebase, reads source files, and follows imports to verify code-specific claims
 - **Web Search Integration** - DuckDuckGo search for external fact verification with URL fetching and content analysis
-- **Pluggable Workflows** - Composable extractors, gatherers, verifiers, and formatters with built-in presets (external, full, quick, internal)
+- **Pluggable Workflows** - Composable extractors, gatherers, verifiers, and formatters with built-in presets (external, full, quick, precise, internal)
+- **Span-Grounded Extraction** - The `precise` preset selects claim-bearing sentences by index and slices claim text verbatim from the source, so the evaluator never verifies a paraphrased or fabricated version of a claim
 - **Structured Outputs** - Pydantic models throughout, no brittle JSON parsing, full type safety
 - **Rich Reports** - JSON, Markdown, and HTML output formats with evidence citations and confidence scores
 - **LangGraph 1.0+** - Durable execution with checkpointing, streaming, and human-in-the-loop support
