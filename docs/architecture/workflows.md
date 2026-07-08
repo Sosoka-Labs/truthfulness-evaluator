@@ -199,7 +199,7 @@ consensus = ConsensusVerifier(
 
 ## Preset Configurations
 
-Four built-in presets provide ready-to-use workflow configurations:
+Five built-in presets provide ready-to-use workflow configurations:
 
 ### external
 
@@ -226,6 +226,21 @@ formatters: [JsonFormatter(), MarkdownFormatter(), HtmlFormatter()]
 ```
 
 **Use for:** Complete documentation review, technical writing, content validation.
+
+### precise
+
+Span-grounded extraction that quotes the source verbatim, with web and
+filesystem evidence and multi-model consensus.
+
+```python
+extractor: SentenceSelectionExtractor()
+gatherers: [CompositeGatherer([WebSearchGatherer(), FilesystemGatherer()])]
+verifier: ConsensusVerifier(models=["gpt-4o", "claude-sonnet-4-5"])
+formatters: [JsonFormatter(), MarkdownFormatter()]
+```
+
+**Use for:** High-stakes review where a claim must be quoted exactly as written,
+avoiding any risk of verifying a paraphrased or fabricated version of a claim.
 
 ### quick
 
