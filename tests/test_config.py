@@ -1,6 +1,29 @@
 """Tests for truthfulness_evaluator.config module."""
 
+import os
+
+import pytest
 from truthfulness_evaluator.core.config import EvaluatorConfig, get_config
+
+# Env vars that would otherwise leak the developer's real configuration into
+# these tests. EvaluatorConfig reads the TRUTH_ prefix plus these bare keys.
+_LEAKY_ENV_VARS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "FIREWORKS_API_KEY")
+
+
+@pytest.fixture(autouse=True)
+def isolate_config_env(monkeypatch, tmp_path):
+    """Isolate config tests from the developer's ambient .env and env vars.
+
+    EvaluatorConfig loads a ``.env`` from the working directory and honours any
+    ``TRUTH_``-prefixed variables. Without isolation these tests pass or fail
+    depending on the machine they run on. Changing to an empty directory drops
+    the .env, and clearing the relevant variables gives every test a clean,
+    deterministic baseline; tests that need specific values set them explicitly.
+    """
+    monkeypatch.chdir(tmp_path)
+    for key in list(os.environ):
+        if key.startswith("TRUTH_") or key in _LEAKY_ENV_VARS:
+            monkeypatch.delenv(key, raising=False)
 
 
 class TestEvaluatorConfig:
