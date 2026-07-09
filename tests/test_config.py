@@ -1,6 +1,25 @@
 """Tests for truthfulness_evaluator.config module."""
 
+import os
+
+import pytest
 from truthfulness_evaluator.core.config import EvaluatorConfig, get_config
+
+
+@pytest.fixture(autouse=True)
+def _clear_provider_env(monkeypatch):
+    """Keep config tests hermetic against a developer's real .env / shell keys.
+
+    Importing the package auto-loads .env into the environment (see
+    core.config), so any TRUTH_* setting or provider key present there would
+    otherwise leak into the default-value assertions. Tests that exercise env
+    fallback set the vars they need explicitly after this clears them.
+    """
+    for var in list(os.environ):
+        if var.startswith("TRUTH_"):
+            monkeypatch.delenv(var, raising=False)
+    for var in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "FIREWORKS_API_KEY"):
+        monkeypatch.delenv(var, raising=False)
 
 
 class TestEvaluatorConfig:
@@ -8,7 +27,9 @@ class TestEvaluatorConfig:
 
     def test_config_default_values(self):
         """Test that config has correct default values."""
-        config = EvaluatorConfig()
+        # _env_file=None isolates from a developer's real .env (which may point
+        # verification_models at other providers); this asserts class defaults.
+        config = EvaluatorConfig(_env_file=None)
 
         # Model configuration
         assert config.claim_extraction_model == "gpt-4o-mini"

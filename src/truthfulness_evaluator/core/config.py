@@ -3,7 +3,15 @@
 import os
 from typing import Any, Literal
 
+from dotenv import find_dotenv, load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load .env into the process environment as early as config is touched. This is
+# the single funnel every entry point (CLI, library, graph nodes) imports, so it
+# guarantees provider API keys reach the LangChain clients — which read
+# os.environ at construction time — not just this settings object. Existing
+# environment variables always win (override=False).
+load_dotenv(find_dotenv(usecwd=True), override=False)
 
 
 class EvaluatorConfig(BaseSettings):
