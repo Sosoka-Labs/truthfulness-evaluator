@@ -65,10 +65,10 @@ TRUTH_VERIFICATION_MODELS=["accounts/fireworks/models/llama-v3-8b-instruct"]
 TRUTH_CONFIDENCE_THRESHOLD=0.9
 
 # Uses .env models and confidence
-truth-eval README.md
+truth-eval evaluate README.md
 
 # Overrides only confidence
-truth-eval README.md --confidence 0.7
+truth-eval evaluate README.md --confidence 0.7
 ```
 
 ## Python Configuration
@@ -110,6 +110,70 @@ config = EvaluatorConfig(
 | `claude-sonnet-4-5` | Secondary verification | Medium |
 | `accounts/fireworks/...` | Cost-effective verification | Low |
 | `gpt-4o` + `claude` | High-confidence consensus | Higher |
+
+## Providers
+
+The provider is inferred from the **model name** (see `llm/factory.py`):
+
+| Provider | Name must contain | Client | Key |
+|----------|-------------------|--------|-----|
+| OpenAI | `gpt`, `o1`, `o3`, `o4` | `ChatOpenAI` | `OPENAI_API_KEY` |
+| Anthropic | `claude`, `anthropic` | `ChatAnthropic` | `ANTHROPIC_API_KEY` |
+| Fireworks | `accounts/fireworks` | `ChatFireworks` | `FIREWORKS_API_KEY` |
+| OpenAI-compatible | *(pass `base_url`)* | `ChatOpenAI` | — |
+
+Keys are read from `.env` automatically (loaded into the environment on import;
+existing environment variables win). A bare model alias like `kimi-k2` will not
+route — Fireworks models **must** use their full `accounts/fireworks/models/...`
+path.
+
+### Fireworks Multi-Model Consensus
+
+Fireworks hosts several strong open models behind one API key, which makes a
+diverse consensus panel cheap to assemble. Verified working end to end
+(extraction, structured verdicts, and weighted voting) with:
+
+| Model | Fireworks ID |
+|-------|--------------|
+| GLM 5.1 | `accounts/fireworks/models/glm-5p1` |
+| Kimi K2 | `accounts/fireworks/models/kimi-k2p6` |
+| DeepSeek V4 Pro | `accounts/fireworks/models/deepseek-v4-pro` |
+
+**`.env` — three different LLMs voting:**
+
+```bash
+FIREWORKS_API_KEY=fw-...
+
+TRUTH_CLAIM_EXTRACTION_MODEL=accounts/fireworks/models/kimi-k2p6
+TRUTH_VERIFICATION_MODELS=["accounts/fireworks/models/glm-5p1","accounts/fireworks/models/kimi-k2p6","accounts/fireworks/models/deepseek-v4-pro"]
+TRUTH_CONFIDENCE_THRESHOLD=0.5
+```
+
+```bash
+truth-eval evaluate README.md
+```
+
+**Python:**
+
+```python
+from truthfulness_evaluator.core.config import EvaluatorConfig
+
+FIREWORKS = "accounts/fireworks/models"
+config = EvaluatorConfig(
+    claim_extraction_model=f"{FIREWORKS}/kimi-k2p6",
+    verification_models=[
+        f"{FIREWORKS}/glm-5p1",
+        f"{FIREWORKS}/kimi-k2p6",
+        f"{FIREWORKS}/deepseek-v4-pro",
+    ],
+    confidence_threshold=0.5,
+)
+```
+
+Each model's individual vote is preserved in the report's `model_votes`
+(enabled by `include_model_votes=True`). Providers can be mixed freely — e.g.
+`["gpt-4o", "claude-sonnet-4-5", "accounts/fireworks/models/deepseek-v4-pro"]` —
+since routing is per model name.
 
 ## Consensus Methods
 
