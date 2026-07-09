@@ -63,7 +63,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 100
-# py314 target lands with black 25+; the current pin formats identically for it.
+# black has no py314 target yet; py313 formatting is compatible with 3.14.
 target-version = ['py311', 'py312', 'py313']
 
 [tool.ruff]

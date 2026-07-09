@@ -57,6 +57,10 @@ class TestSynthesizeEvidence:
         assert "is neutral on" in summary
 
 
+# NOTE: analyze_evidence mutates the passed-in evidence objects and reorders the
+# list in place (see evidence.py:77-85). These tests rely on that current
+# behavior; if it is ever refactored to return fresh objects, update them
+# deliberately rather than assuming the change is behavior-preserving.
 class TestAnalyzeEvidence:
     async def test_empty_list_short_circuits_without_llm(self):
         processor = EvidenceProcessor()
