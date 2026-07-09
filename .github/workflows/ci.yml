@@ -42,4 +42,4 @@ jobs:
         run: poetry run black --check src/ tests/
 
       - name: Run tests
-        run: poetry run pytest -m "not e2e" --cov-fail-under=60 --tb=short
+        run: poetry run pytest -m "not e2e" --cov-fail-under=74 --tb=short
