@@ -37,7 +37,7 @@ EOF
 ## Verify Installation
 
 ```bash
-truth-eval --version
+truth-eval version
 ```
 
 Should output: `Truthfulness Evaluator v0.1.0`

@@ -3,7 +3,15 @@
 import os
 from typing import Any, Literal
 
+from dotenv import find_dotenv, load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load .env into the process environment as early as config is touched. This is
+# the single funnel every entry point (CLI, library, graph nodes) imports, so it
+# guarantees provider API keys reach the LangChain clients — which read
+# os.environ at construction time — not just this settings object. Existing
+# environment variables always win (override=False).
+load_dotenv(find_dotenv(usecwd=True), override=False)
 
 
 class EvaluatorConfig(BaseSettings):
@@ -13,21 +21,21 @@ class EvaluatorConfig(BaseSettings):
         env_prefix="TRUTH_",
         env_file=".env",
         env_file_encoding="utf-8",
+        # Tolerate stray/legacy TRUTH_* vars (e.g. a removed setting left in a
+        # developer's .env) instead of crashing on startup.
+        extra="ignore",
     )
 
     # Model configuration
     claim_extraction_model: str = "gpt-4o-mini"
     verification_models: list[str] = ["gpt-4o", "claude-sonnet-4-5"]
-    consensus_method: Literal["simple", "weighted", "ice"] = "weighted"
+    consensus_method: Literal["simple", "weighted"] = "weighted"
     confidence_threshold: float = 0.7
 
     # Search configuration
     enable_web_search: bool = True
     enable_filesystem_search: bool = True
     max_evidence_items: int = 5
-
-    # ICE configuration
-    ice_max_rounds: int = 3
 
     # Output configuration
     output_format: Literal["json", "markdown"] = "json"

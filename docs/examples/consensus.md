@@ -19,7 +19,7 @@ Single models can hallucinate. Multiple models voting reduces false positives.
 ## Basic Consensus
 
 ```bash
-truth-eval README.md \
+truth-eval evaluate README.md \
   --model gpt-4o \
   --model gpt-4o-mini
 ```
@@ -27,7 +27,7 @@ truth-eval README.md \
 ## High-Confidence Setup
 
 ```bash
-truth-eval critical-doc.md \
+truth-eval evaluate critical-doc.md \
   --model gpt-4o \
   --model claude-sonnet-4-5 \
   --model gpt-4o-mini \
@@ -36,30 +36,49 @@ truth-eval critical-doc.md \
 
 ## How Consensus Works
 
-### Agreement
+Consensus is **agreement-based**, not an average of self-reported confidence. Each model
+in the panel returns its own verdict; `ConsensusChain` tallies verdicts using per-model
+weights (equal by default), then:
+
+- Commits the leading verdict **only if** it isn't tied for the lead **and** its weighted
+  agreement fraction meets `confidence_threshold`.
+- Otherwise abstains to `NOT_ENOUGH_INFO`.
+
+The reported `confidence` on the result *is* that weighted agreement fraction — a
+consistency signal — not a mean of the models' own confidence scores, which research on
+LLM calibration found to be unreliable (see `llm_memory/research-multimodel-voting.md`
+in the repository root for the full rationale).
+
+### Unanimous Agreement
 
 ```
 gpt-4o: SUPPORTS
 gpt-4o-mini: SUPPORTS
-→ Final: SUPPORTS (high confidence)
+→ Final: SUPPORTS (confidence 1.0 — 100% weighted agreement)
 ```
 
-### Disagreement
+### Tie
 
 ```
 gpt-4o: SUPPORTS
 gpt-4o-mini: REFUTES
-→ Final: NOT_ENOUGH_INFO (conservative)
+→ Final: NOT_ENOUGH_INFO (tie for the lead — no verdict has a majority)
 ```
 
-### Split Decision
+### Majority That Still Misses the Threshold
+
+With 3 equal-weight models, a 2-out-of-3 majority is only 0.67 weighted agreement:
 
 ```
 gpt-4o: SUPPORTS
+claude-sonnet-4-5: SUPPORTS
 gpt-4o-mini: NOT_ENOUGH_INFO
-claude: SUPPORTS
-→ Final: SUPPORTS (majority)
+→ confidence_threshold=0.7 → Final: NOT_ENOUGH_INFO (0.67 < 0.7 threshold, abstains)
+→ confidence_threshold=0.6 → Final: SUPPORTS (confidence 0.67, majority accepted)
 ```
+
+Lower `confidence_threshold` to accept simple majorities; raise it toward unanimity for
+higher-precision, lower-yield verdicts.
 
 ## Python API
 
@@ -81,83 +100,25 @@ print(result.model_votes)
 # {'gpt-4o': 'SUPPORTS', 'gpt-4o-mini': 'SUPPORTS', 'claude-sonnet-4-5': 'SUPPORTS'}
 ```
 
-## ICE (Iterative Consensus Ensemble)
-
-!!! warning "Partial Implementation"
-    The ICE critique and revision rounds are currently stubs. Round 1 (initial votes) works fully, but Rounds 2-3 (critique and revised votes) return placeholder results. Full ICE implementation is planned for a future release.
-
-Models critique each other:
-
-```python
-from truthfulness_evaluator.llm.chains.consensus import ICEConsensusChain
-
-ice = ICEConsensusChain(
-    model_names=["gpt-4o", "gpt-4o-mini"],
-    max_rounds=3
-)
-
-result = await ice.verify(claim, evidence)
-```
-
-Round 1: Initial votes
-Round 2: Review others' reasoning
-Round 3: Final votes
-
-Higher accuracy, 3x slower.
-
-### ICE Multi-Round Process
-
-The Iterative Consensus Ensemble (ICE) algorithm implements a debate-style verification process:
-
-```mermaid
-sequenceDiagram
-    participant C as Claim
-    participant M1 as GPT-4o
-    participant M2 as Claude
-
-    Note over M1,M2: Round 1: Initial Votes
-    C->>M1: Verify
-    C->>M2: Verify
-    M1-->>C: SUPPORTS (70%)
-    M2-->>C: REFUTES (65%)
-
-    Note over M1,M2: Round 2: Critique
-    M1->>M2: Here's my reasoning...
-    M2->>M1: Here's my reasoning...
-
-    Note over M1,M2: Round 3: Revised Votes
-    M1-->>C: SUPPORTS (80%)
-    M2-->>C: SUPPORTS (75%)
-    Note over C: Consensus reached!
-```
-
-In Round 1, each model independently analyzes the evidence and casts an initial vote. In Round 2, models exchange their reasoning and critique each other's conclusions. In Round 3, models cast final votes after considering alternative perspectives. This process often resolves initial disagreements and produces higher-confidence verdicts.
-
 ### Real Consensus Output Examples
 
-Here's what actual consensus output looks like with detailed model votes:
+`ConsensusChain.verify()` returns a `VerificationResult`. Its `model_votes` field is a
+flat mapping of model name to that model's verdict string — there is no per-model
+confidence or reasoning breakdown in `model_votes` itself; the per-model self-reported
+confidence is only summarized in the human-readable `explanation` text.
 
 #### Example 1: Unanimous Agreement
 
 ```json
 {
-  "claim": "The create_truthfulness_graph() function returns a compiled StateGraph",
+  "claim_id": "c-104",
   "verdict": "SUPPORTS",
-  "confidence": 0.93,
+  "confidence": 1.0,
   "model_votes": {
-    "gpt-4o": {
-      "verdict": "SUPPORTS",
-      "confidence": 0.95,
-      "reasoning": "Function signature in src/graph.py line 142 shows return type CompiledGraph. Implementation calls compile() on StateGraph instance before returning."
-    },
-    "gpt-4o-mini": {
-      "verdict": "SUPPORTS",
-      "confidence": 0.91,
-      "reasoning": "Source code confirms the function builds a StateGraph and returns the compiled result. Type hints match the claim."
-    }
+    "gpt-4o": "SUPPORTS",
+    "gpt-4o-mini": "SUPPORTS"
   },
-  "consensus_method": "weighted_average",
-  "key_evidence": ["src/truthfulness_evaluator/graph.py:142-156"]
+  "explanation": "Consensus: SUPPORTS (100% weighted agreement)\nModel votes:\ngpt-4o: SUPPORTS (self-reported 95%)\ngpt-4o-mini: SUPPORTS (self-reported 91%)"
 }
 ```
 
@@ -165,55 +126,19 @@ Here's what actual consensus output looks like with detailed model votes:
 
 ```json
 {
-  "claim": "Processing typically completes in under 10 seconds",
+  "claim_id": "c-207",
   "verdict": "NOT_ENOUGH_INFO",
-  "confidence": 0.45,
+  "confidence": 0.5,
   "model_votes": {
-    "gpt-4o": {
-      "verdict": "NOT_ENOUGH_INFO",
-      "confidence": 0.50,
-      "reasoning": "No performance benchmarks found in codebase. README mentions speed but provides no concrete timing data."
-    },
-    "gpt-4o-mini": {
-      "verdict": "REFUTES",
-      "confidence": 0.70,
-      "reasoning": "Evidence suggests processing involves multiple LLM calls and web searches, which typically exceed 10 seconds total."
-    }
+    "gpt-4o": "NOT_ENOUGH_INFO",
+    "gpt-4o-mini": "REFUTES"
   },
-  "consensus_method": "conservative_on_disagreement",
-  "flags": ["MODEL_DISAGREEMENT", "LOW_CONFIDENCE"],
-  "key_evidence": []
+  "explanation": "Consensus: NOT_ENOUGH_INFO (50% weighted agreement)\nModel votes:\ngpt-4o: NOT_ENOUGH_INFO (self-reported 50%)\ngpt-4o-mini: REFUTES (self-reported 70%)\n(Abstained: tie.)"
 }
 ```
 
-#### Example 3: ICE Resolution After Initial Disagreement
-
-```json
-{
-  "claim": "Requires Python 3.11 or higher",
-  "verdict": "SUPPORTS",
-  "confidence": 0.88,
-  "model_votes": {
-    "gpt-4o": {
-      "initial_verdict": "SUPPORTS",
-      "initial_confidence": 0.85,
-      "final_verdict": "SUPPORTS",
-      "final_confidence": 0.90,
-      "reasoning": "pyproject.toml specifies requires-python = '>=3.11'. After reviewing alternative interpretation, I maintain this is correct."
-    },
-    "claude-sonnet-4-5": {
-      "initial_verdict": "REFUTES",
-      "initial_confidence": 0.65,
-      "final_verdict": "SUPPORTS",
-      "final_confidence": 0.86,
-      "reasoning": "Initially misread version constraint. After critique, confirmed pyproject.toml does require 3.11+. Changed verdict."
-    }
-  },
-  "consensus_method": "ice",
-  "rounds": 3,
-  "key_evidence": ["pyproject.toml:10"]
-}
-```
+Note `confidence` here is the weighted agreement fraction (a tie between two verdicts,
+each at 50% of the weight), not either model's self-reported confidence.
 
 ## When to Use
 
@@ -221,8 +146,8 @@ Here's what actual consensus output looks like with detailed model votes:
 |----------|----------------|
 | Quick check | Single model (gpt-4o) |
 | Documentation | 2 models |
-| Legal/medical | 3+ models + high threshold |
-| Research paper | ICE consensus |
+| Legal/medical | 3+ models + high agreement threshold |
+| Research paper | 3+ diverse models + high agreement threshold |
 
 ## Cost Optimization
 
@@ -255,18 +180,19 @@ Disagreement = need for human review.
 
 ## Advanced Consensus Strategies
 
-### Confidence Thresholds
+### Agreement Thresholds
 
-Set minimum confidence to accept verdicts:
+`confidence_threshold` sets the minimum weighted agreement required to commit a verdict:
 
 ```python
 consensus = ConsensusChain(
     model_names=["gpt-4o", "gpt-4o-mini"],
-    confidence_threshold=0.85  # Reject verdicts below 85%
+    confidence_threshold=0.85  # Require 85% weighted agreement to commit a verdict
 )
 ```
 
-Low-confidence results trigger human review or additional evidence gathering.
+Results that don't clear the threshold abstain to `NOT_ENOUGH_INFO`, which is a signal to
+trigger human review or gather additional evidence.
 
 ### Weighted Voting
 
@@ -283,24 +209,18 @@ consensus = ConsensusChain(
 )
 ```
 
-The final confidence score is the weighted average of individual model confidences.
+The final confidence score is the weighted **agreement** fraction for the leading
+verdict — the fraction of total weight that voted for it — not an average of the models'
+individual confidence scores.
 
-### Tie-Breaking Rules
+### Ties Always Abstain
 
-When models are split evenly (2 SUPPORTS, 2 REFUTES):
+`ConsensusChain` has one tie-breaking rule: if two or more verdicts are tied for the most
+weight, the result is always `NOT_ENOUGH_INFO`. There is no configurable tie-break
+strategy — ties are treated the same as insufficient agreement.
 
-1. **Conservative** (default): Return NOT_ENOUGH_INFO
-2. **Optimistic**: Return majority verdict if confidence > threshold
-3. **Defer**: Trigger human review interrupt
-
-Configure in `ConsensusConfig`:
-
-```python
-config = ConsensusConfig(
-    tie_break_strategy="conservative",  # or "optimistic", "defer"
-    defer_confidence_threshold=0.75
-)
 ```
-
-!!! tip "Choosing Tie-Break Strategy"
-    Use conservative for production documentation verification where false positives are costly. Use optimistic for draft reviews where you want to catch obvious errors but accept some uncertainty. Use defer for critical documents where every claim must be verified by humans.
+gpt-4o: SUPPORTS
+gpt-4o-mini: REFUTES
+→ Final: NOT_ENOUGH_INFO (tie, regardless of confidence_threshold)
+```

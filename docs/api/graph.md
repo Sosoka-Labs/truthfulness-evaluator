@@ -1,5 +1,50 @@
 # Graph
 
+## Authoritative Graph Structure
+
+The diagrams below are generated directly from the compiled graphs via
+`graph.get_graph().draw_mermaid()` — they are the literal node and edge structure, not a
+conceptual approximation. Regenerate them with:
+
+```bash
+poetry run python -c "from truthfulness_evaluator.llm.workflows.graph import create_truthfulness_graph; print(create_truthfulness_graph().get_graph().draw_mermaid())"
+poetry run python -c "from truthfulness_evaluator.llm.workflows.graph_internal import create_internal_verification_graph; print(create_internal_verification_graph().get_graph().draw_mermaid())"
+```
+
+### External graph (`create_truthfulness_graph`)
+
+Used for `--mode external` (the default). Evidence gathering is a dedicated node.
+
+```mermaid
+graph TD
+    START([start]) --> extract_claims
+    extract_claims --> search_evidence
+    search_evidence --> verify_claim
+    verify_claim -. more claims .-> search_evidence
+    verify_claim -. all claims done .-> generate_report
+    generate_report --> END([end])
+```
+
+### Internal graph (`create_internal_verification_graph`)
+
+Used for `--mode internal` and `--mode both`. There is **no** `search_evidence` node —
+evidence gathering (filesystem lookups, AST parsing, web search for external-fact claims
+in `both` mode) happens inside `verify_claim` itself, which loops back to itself for each
+remaining claim instead of routing through a separate evidence-gathering step.
+
+```mermaid
+graph TD
+    START([start]) --> extract_claims
+    extract_claims --> verify_claim
+    verify_claim -. more claims .-> verify_claim
+    verify_claim -. all claims done .-> generate_report
+    generate_report --> END([end])
+```
+
+Human-in-the-loop review (`enable_human_review`) is not a node in either graph — it is a
+LangGraph `interrupt()` call made from inside `verify_claim`, so the graph structure above
+is identical whether or not human review is enabled.
+
 ## create_truthfulness_graph
 
 ```python

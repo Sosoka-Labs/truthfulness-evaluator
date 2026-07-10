@@ -194,26 +194,24 @@ sequenceDiagram
     V-->>C: SUPPORTS (88%)
 ```
 
-When models unanimously agree, confidence scores are averaged with weights applied. Disagreements trigger conservative fallbacks, typically resulting in NOT_ENOUGH_INFO verdicts. This prevents the system from confidently reporting incorrect information when models can't reach consensus.
-
-### ICE (Iterative Consensus Ensemble)
-
-Models critique each other:
-
-1. Round 1: Initial votes
-2. Round 2: Review others' reasoning
-3. Round 3: Revise if persuaded
-
-Higher accuracy, 3x slower.
+The reported confidence is the weighted **agreement** fraction for the leading verdict,
+not an average of the models' self-reported confidence scores — self-reported confidence
+is known to be poorly calibrated, so it's recorded per-model but not used to decide the
+outcome. When models unanimously agree, agreement is 1.0 and confidence is high.
+Disagreement (or a tie for the lead) drops the weighted agreement below the threshold and
+the ensemble abstains to `NOT_ENOUGH_INFO`, rather than confidently reporting a verdict the
+panel didn't actually agree on.
 
 ## Human-in-the-Loop
 
-Interrupts for low-confidence claims:
+There is no separate human-review node. `enable_human_review` makes the `verify_claim`
+node call LangGraph's `interrupt()` in place for low-confidence claims, pausing execution
+mid-node rather than routing to another node:
 
 ```
 Confidence < threshold
         ↓
-[INTERRUPT] Human review
+[INTERRUPT] inside verify_claim
         ↓
 Approve → Continue
 Correct → Update verdict
@@ -231,13 +229,16 @@ stateDiagram-v2
     ExtractClaims --> GenerateReport : no claims
     SearchEvidence --> VerifyClaim
     VerifyClaim --> SearchEvidence : more claims
-    VerifyClaim --> HumanReview : low confidence
-    HumanReview --> VerifyClaim : approved
     VerifyClaim --> GenerateReport : all verified
     GenerateReport --> [*]
 ```
 
-Each node represents a distinct step in the pipeline. The state machine tracks progress, allowing for interruption, human-in-the-loop review, and resumption from checkpoints. Low-confidence claims can trigger human review nodes before proceeding to final report generation.
+Each node represents a distinct step in the pipeline. The state machine tracks progress,
+allowing for interruption and resumption from checkpoints. Human-in-the-loop review is not
+a node in this diagram — it is an `interrupt()` call inside `VerifyClaim` (see
+[Human-in-the-Loop](#human-in-the-loop) above), so the graph structure is unchanged whether
+or not review is enabled. For the literal compiled-graph structure, see
+[Graph Reference](../api/graph.md#authoritative-graph-structure).
 
 ## Checkpointing
 
@@ -305,4 +306,4 @@ Typical processing times:
 | Large (20+ pages) | 100+ | Web + filesystem | 10-20 minutes |
 
 !!! tip "Speed vs Accuracy Tradeoffs"
-    Use `gpt-4o-mini` for extraction and `gpt-4o` for verification to balance speed and accuracy. For maximum speed, use single-model verification with `gpt-4o-mini` only. For maximum accuracy, use ICE consensus with 3+ models including Claude and GPT-4o.
+    Use `gpt-4o-mini` for extraction and `gpt-4o` for verification to balance speed and accuracy. For maximum speed, use single-model verification with `gpt-4o-mini` only. For maximum accuracy, use a few genuinely diverse strong models (e.g. Claude and GPT-4o rather than two same-family models) and tune the agreement threshold to the precision you need.

@@ -76,7 +76,7 @@ Truthfulness Evaluator — Python CLI and library for multi-model claim verifica
 
 ## Key Entry Points
 
-- **CLI script:** `poetry run truth-eval README.md` (or `poetry run python -m truthfulness_evaluator.truth`)
+- **CLI script:** `poetry run truth-eval evaluate README.md` (or `poetry run python -m truthfulness_evaluator.truth`)
 - **Graph constructors:** `create_truthfulness_graph()` and `create_internal_verification_graph()` in `src/truthfulness_evaluator/llm/workflows/`
 - **Main module exports:** `src/truthfulness_evaluator/__init__.py` exposes all public APIs.
 

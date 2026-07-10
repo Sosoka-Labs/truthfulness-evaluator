@@ -188,13 +188,13 @@ The tool supports multiple verification modes:
 
 ```bash
 # External facts only (current default)
-truth-eval README.md
+truth-eval evaluate README.md
 
 # Code alignment only
-truth-eval README.md --mode internal
+truth-eval evaluate README.md --mode internal
 
 # Both
-truth-eval README.md --mode both
+truth-eval evaluate README.md --mode both
 ```
 
 This preserves the current external fact-checking capability while enabling high-value code alignment verification when needed.
