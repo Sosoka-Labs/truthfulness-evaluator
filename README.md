@@ -14,7 +14,7 @@ Multi-model truthfulness evaluation with filesystem-aware evidence gathering.
 
 ## Overview
 
-Truthfulness Evaluator automates fact-checking for technical documentation. It extracts verifiable claims from your Markdown files, gathers evidence from web searches and your actual codebase, then uses multiple AI models to verify each claim through weighted consensus.
+Truthfulness Evaluator automates fact-checking for technical documentation. It extracts verifiable claims from your Markdown files, gathers evidence from web searches and your actual codebase, then uses multiple AI models to verify each claim through agreement-based multi-model consensus.
 
 Stop shipping documentation that drifts from reality. Run this tool in CI to catch outdated READMEs, verify API references match actual code, and ensure your technical claims are backed by evidence.
 
@@ -47,7 +47,7 @@ graph TD
 
 3. **Multi-Model Verification** - Each claim is sent to multiple AI models independently. Models analyze evidence and return structured verdicts (SUPPORTS, REFUTES, or NOT_ENOUGH_INFO) with confidence scores.
 
-4. **Consensus and Grading** - Model votes are aggregated through weighted consensus. Final report includes letter grade (A+ to F), evidence citations, and detailed explanations.
+4. **Consensus and Grading** - Model verdicts are tallied by weighted agreement; the ensemble abstains to NOT_ENOUGH_INFO on ties or when agreement falls below the confidence threshold. Final report includes letter grade (A+ to F), evidence citations, and detailed explanations.
 
 ## Use Cases
 
@@ -104,19 +104,19 @@ Or use a `.env` file (see `.env.example` for all options).
 Verify a document:
 
 ```bash
-truth-eval README.md
+truth-eval evaluate README.md
 ```
 
 Generate a Markdown report:
 
 ```bash
-truth-eval README.md -o report.md
+truth-eval evaluate README.md -o report.md
 ```
 
 Check documentation against your actual codebase:
 
 ```bash
-truth-eval README.md --root-path . --mode both
+truth-eval evaluate README.md --root-path . --mode both
 ```
 
 Full options:

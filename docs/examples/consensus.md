@@ -19,7 +19,7 @@ Single models can hallucinate. Multiple models voting reduces false positives.
 ## Basic Consensus
 
 ```bash
-truth-eval README.md \
+truth-eval evaluate README.md \
   --model gpt-4o \
   --model gpt-4o-mini
 ```
@@ -27,7 +27,7 @@ truth-eval README.md \
 ## High-Confidence Setup
 
 ```bash
-truth-eval critical-doc.md \
+truth-eval evaluate critical-doc.md \
   --model gpt-4o \
   --model claude-sonnet-4-5 \
   --model gpt-4o-mini \

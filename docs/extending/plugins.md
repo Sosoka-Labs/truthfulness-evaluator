@@ -118,7 +118,7 @@ The entry point syntax is:
 <workflow_name> = "<module.path>:<factory_function>"
 ```
 
-- **workflow_name**: Used with `--workflow` CLI flag
+- **workflow_name**: Key used to look up the workflow via `WorkflowRegistry.get(...)`
 - **module.path**: Import path to your module
 - **factory_function**: Function that returns a `WorkflowConfig`
 
@@ -147,7 +147,7 @@ Once installed, users can use your plugin workflow via the CLI:
 pip install truthfulness-plugin-scientific
 
 # Use it
-truth-eval paper.md --workflow scientific --output results/
+truth-eval evaluate paper.md --output results/
 ```
 
 ## Plugin Distribution
@@ -186,10 +186,15 @@ Plugins are ideal for domain-specific workflows:
     Declare `truthfulness-evaluator` as a dependency with version constraints. Use `>=0.1.0` to ensure plugin API stability.
 
 !!! note "Testing Plugins"
-    Test your plugin by installing it in editable mode:
+    Test your plugin by installing it in editable mode, then confirm discovery via the
+    Python API:
     ```bash
     pip install -e .
-    truth-eval --list-workflows
+    ```
+    ```python
+    from truthfulness_evaluator.llm.workflows.registry import WorkflowRegistry
+
+    print(WorkflowRegistry.list_workflows())
     ```
 
 ## Debugging Plugin Discovery

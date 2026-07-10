@@ -30,7 +30,7 @@ Internal verification checks if your documentation accurately describes your cod
 
 ```bash
 # Verify README against codebase
-truth-eval README.md --root-path . --mode internal
+truth-eval evaluate README.md --root-path . --mode internal
 ```
 
 ## Combined Mode
@@ -40,7 +40,7 @@ Automatically route claims to appropriate verifier:
 ```bash
 # External facts → Web search
 # Code claims → Codebase verification
-truth-eval README.md --root-path . --mode both
+truth-eval evaluate README.md --root-path . --mode both
 ```
 
 ## How It Works
@@ -89,19 +89,27 @@ Smart file selection based on claim type:
 # Config claims → Check config.py, settings.yaml
 ```
 
-### 3. Multi-Modal Confidence
+### 3. Second-Opinion Escalation
 
-Low confidence triggers second opinion:
+Internal (codebase) claims are verified by `InternalVerificationChain` using the first
+model in `verification_models`. If the primary result is low-confidence (below ~0.7) or
+`REFUTES`, a different model is queried for a second opinion:
+
+- **Agreement** — the verdict stands and its confidence is boosted.
+- **Disagreement** — the result is downgraded to `NOT_ENOUGH_INFO` (conservative).
 
 ```
-Model 1: REFUTES (confidence: 60%)
+gpt-4o (primary): REFUTES
+    ↓ (REFUTES triggers a second opinion)
+gpt-4o-mini: SUPPORTS
     ↓
-Get second opinion
-    ↓
-Model 2: SUPPORTS (confidence: 90%)
-    ↓
-Consensus: NOT_ENOUGH_INFO (disagreement)
+Disagreement → NOT_ENOUGH_INFO
 ```
+
+This escalation is specific to internal verification. External (web) claims — and
+`external`-classified claims under `--mode both` — instead use agreement-based
+`ConsensusChain` voting across all `verification_models` (see
+[Consensus Verification](../examples/consensus.md)).
 
 ## Example
 
@@ -115,7 +123,7 @@ Requires Python 3.11 or higher.
 
 **Verification:**
 ```bash
-truth-eval README.md --root-path . --mode both
+truth-eval evaluate README.md --root-path . --mode both
 ```
 
 **Output:**
@@ -131,13 +139,16 @@ truth-eval README.md --root-path . --mode both
    📁 Evidence: pyproject.toml
 ```
 
-## Confidence-Based Routing
+## Confidence and Second Opinions
 
-| Confidence | Action |
-|------------|--------|
-| >= 85% | Accept verdict |
-| 60-85% | Get second opinion |
-| < 60% | Mark as NEI |
+For internal claims, a second opinion is fetched whenever the primary model's confidence
+is below ~0.7 or it returns `REFUTES`, and the two models' agreement then decides the
+final verdict (agree → committed with boosted confidence; disagree → `NOT_ENOUGH_INFO`).
+
+The `confidence_threshold` setting governs the **external** consensus path (the agreement
+level required to commit a verdict); see [Configuration](../getting-started/configuration.md#consensus-methods).
+
+Below threshold, or on a tie for the lead verdict → `NOT_ENOUGH_INFO`
 
 ## Limitations
 
@@ -234,8 +245,8 @@ The agent verified both the declared requirement AND the reason (TOML support), 
 ```yaml
 - name: Verify docs match code
   run: |
-    truth-eval README.md --root-path . --mode both --confidence 0.8
-    truth-eval API.md --root-path ./src --mode internal
+    truth-eval evaluate README.md --root-path . --mode both --confidence 0.8
+    truth-eval evaluate API.md --root-path ./src --mode internal
 ```
 
 ### GitHub Actions Example
@@ -263,7 +274,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          truth-eval README.md \
+          truth-eval evaluate README.md \
             --root-path . \
             --mode both \
             --confidence 0.80 \
@@ -287,4 +298,4 @@ jobs:
 This workflow fails the build if documentation quality drops below a B grade.
 
 !!! tip "CI Performance Optimization"
-    Cache model responses between runs using `--cache-dir .truth-eval-cache` to speed up verification for unchanged claims. This reduces API costs and latency for large documentation suites.
+    Use `gpt-4o-mini` (or another low-cost model) for `TRUTH_CLAIM_EXTRACTION_MODEL` to cut cost and latency on large documentation suites in CI. Reserve stronger models for `verification_models`, where consensus quality matters most.

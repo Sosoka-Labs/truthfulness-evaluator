@@ -3,7 +3,7 @@
 ## Evaluate a README
 
 ```bash
-truth-eval README.md
+truth-eval evaluate README.md
 ```
 
 Example README:
@@ -37,7 +37,7 @@ Confidence: 75.0%
 ## With Filesystem Context
 
 ```bash
-truth-eval README.md --root-path .
+truth-eval evaluate README.md --root-path .
 ```
 
 Agent finds:
@@ -49,7 +49,7 @@ Agent finds:
 
 ```bash
 for doc in docs/*.md; do
-    truth-eval "$doc" -o "reports/$(basename $doc .md).json"
+    truth-eval evaluate "$doc" -o "reports/$(basename $doc .md).json"
 done
 ```
 
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: pip install truthfulness-evaluator
-      - run: truth-eval README.md --root-path . --confidence 0.8
+      - run: truth-eval evaluate README.md --root-path . --confidence 0.8
 ```
 
 ## Python Script
@@ -101,10 +101,10 @@ asyncio.run(verify_docs())
 
 ```bash
 # Lower threshold for more claims verified
-truth-eval README.md --confidence 0.5
+truth-eval evaluate README.md --confidence 0.5
 
 # Or add more evidence sources
-truth-eval README.md --root-path . --web-search
+truth-eval evaluate README.md --root-path . --web-search
 ```
 
 ### False Positives
@@ -112,7 +112,7 @@ truth-eval README.md --root-path . --web-search
 Increase confidence threshold:
 
 ```bash
-truth-eval README.md --confidence 0.9
+truth-eval evaluate README.md --confidence 0.9
 ```
 
 ### Missing Claims

@@ -204,12 +204,14 @@ panel didn't actually agree on.
 
 ## Human-in-the-Loop
 
-Interrupts for low-confidence claims:
+There is no separate human-review node. `enable_human_review` makes the `verify_claim`
+node call LangGraph's `interrupt()` in place for low-confidence claims, pausing execution
+mid-node rather than routing to another node:
 
 ```
 Confidence < threshold
         ↓
-[INTERRUPT] Human review
+[INTERRUPT] inside verify_claim
         ↓
 Approve → Continue
 Correct → Update verdict
@@ -227,13 +229,16 @@ stateDiagram-v2
     ExtractClaims --> GenerateReport : no claims
     SearchEvidence --> VerifyClaim
     VerifyClaim --> SearchEvidence : more claims
-    VerifyClaim --> HumanReview : low confidence
-    HumanReview --> VerifyClaim : approved
     VerifyClaim --> GenerateReport : all verified
     GenerateReport --> [*]
 ```
 
-Each node represents a distinct step in the pipeline. The state machine tracks progress, allowing for interruption, human-in-the-loop review, and resumption from checkpoints. Low-confidence claims can trigger human review nodes before proceeding to final report generation.
+Each node represents a distinct step in the pipeline. The state machine tracks progress,
+allowing for interruption and resumption from checkpoints. Human-in-the-loop review is not
+a node in this diagram — it is an `interrupt()` call inside `VerifyClaim` (see
+[Human-in-the-Loop](#human-in-the-loop) above), so the graph structure is unchanged whether
+or not review is enabled. For the literal compiled-graph structure, see
+[Graph Reference](../api/graph.md#authoritative-graph-structure).
 
 ## Checkpointing
 

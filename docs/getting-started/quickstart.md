@@ -5,7 +5,7 @@
 Evaluate a document:
 
 ```bash
-truth-eval README.md
+truth-eval evaluate README.md
 ```
 
 Output:
@@ -27,7 +27,7 @@ Confidence: 91.7%
 For code projects, search your repo for evidence:
 
 ```bash
-truth-eval README.md --root-path .
+truth-eval evaluate README.md --root-path .
 ```
 
 The agent will:
@@ -40,7 +40,7 @@ The agent will:
 Use multiple models for higher confidence:
 
 ```bash
-truth-eval document.md \
+truth-eval evaluate document.md \
   --model gpt-4o \
   --model gpt-4o-mini
 ```
@@ -50,7 +50,7 @@ Models vote independently. Disagreements default to `NOT_ENOUGH_INFO`.
 ## Save Report
 
 ```bash
-truth-eval README.md --output report.json
+truth-eval evaluate README.md --output report.json
 ```
 
 JSON output includes:

@@ -395,6 +395,11 @@ Plugins are loaded lazily on first `get()` or `list_workflows()` call. Failed pl
 
 ## Pluggable Pipeline Flow
 
+This is the conceptual strategy-composition pipeline (extractor → gatherers → verifier →
+formatters), not the literal LangGraph node graph. For the exact compiled-graph structure
+of the legacy `create_truthfulness_graph` / `create_internal_verification_graph` monolithic
+graphs, see [Authoritative Graph Structure](../api/graph.md#authoritative-graph-structure).
+
 The workflow execution follows a standard pipeline:
 
 ```mermaid
