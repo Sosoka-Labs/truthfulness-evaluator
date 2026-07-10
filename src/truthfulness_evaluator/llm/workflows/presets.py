@@ -1,6 +1,6 @@
 """Built-in workflow presets."""
 
-from ...strategies.extractors import SimpleExtractor
+from ...strategies.extractors import SentenceSelectionExtractor, SimpleExtractor
 from ...strategies.formatters import HtmlFormatter, JsonFormatter, MarkdownFormatter
 from ...strategies.gatherers import CompositeGatherer, FilesystemGatherer, WebSearchGatherer
 from ...strategies.verifiers import ConsensusVerifier, InternalVerifier, SingleModelVerifier
@@ -34,6 +34,20 @@ def register_builtin_presets() -> None:
             gatherers=[CompositeGatherer([WebSearchGatherer(), FilesystemGatherer()])],
             verifier=ConsensusVerifier(models=["gpt-4o", "claude-sonnet-4-5"]),
             formatters=[JsonFormatter(), MarkdownFormatter(), HtmlFormatter()],
+        ),
+    )
+
+    # Precise verification: span-grounded extraction that quotes the source
+    # verbatim (misquote-proof), with web + filesystem evidence and consensus.
+    WorkflowRegistry.register(
+        "precise",
+        WorkflowConfig(
+            name="precise",
+            description="Span-grounded extraction (verbatim source quotes) with consensus.",
+            extractor=SentenceSelectionExtractor(),
+            gatherers=[CompositeGatherer([WebSearchGatherer(), FilesystemGatherer()])],
+            verifier=ConsensusVerifier(models=["gpt-4o", "claude-sonnet-4-5"]),
+            formatters=[JsonFormatter(), MarkdownFormatter()],
         ),
     )
 

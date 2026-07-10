@@ -32,38 +32,6 @@ Synthesize into final verdict.""",
     ]
 )
 
-# Debate/critique prompt for ICE (Iterative Consensus Ensemble)
-DEBATE_PROMPT = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """You are participating in a structured debate to verify a claim.
-
-Your previous verdict: {previous_verdict}
-Your confidence: {previous_confidence}
-
-Other models have provided different verdicts. Review their reasoning and either:
-1. Maintain your position with additional justification
-2. Revise your position based on their arguments
-3. Propose a compromise or nuanced position
-
-Be specific about what evidence or reasoning changed your mind (if anything).""",
-        ),
-        (
-            "user",
-            """CLAIM: {claim}
-
-OTHER MODEL VERDICTS:
-{other_votes}
-
-EVIDENCE:
-{evidence}
-
-Review and update your verdict.""",
-        ),
-    ]
-)
-
 # Report generation prompt
 REPORT_SUMMARY_PROMPT = ChatPromptTemplate.from_messages(
     [

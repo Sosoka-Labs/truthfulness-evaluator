@@ -18,7 +18,7 @@ Verify documentation against actual code:
 ## Basic Usage
 
 ```bash
-truth-eval README.md --root-path .
+truth-eval evaluate README.md --root-path .
 ```
 
 ## How It Works
@@ -79,7 +79,7 @@ The `process()` function accepts:
 
 Verification:
 ```bash
-truth-eval README.md --root-path ./src
+truth-eval evaluate README.md --root-path ./src
 ```
 
 Agent actions:
@@ -139,7 +139,7 @@ Requires Python 3.11 or higher.
 ```
 
 ```bash
-truth-eval README.md --root-path .
+truth-eval evaluate README.md --root-path .
 ```
 
 Agent execution:
@@ -288,7 +288,7 @@ agent.read_file("../../etc/passwd")  # Error: Outside allowed directory
 
 ```bash
 # Check root path is correct
-truth-eval README.md --root-path ./src  # Not just .
+truth-eval evaluate README.md --root-path ./src  # Not just .
 
 # Verify files exist
 ls ./src/*.py
@@ -307,6 +307,6 @@ The agent uses LLM reasoning to select files. If it picks wrong files:
 ```yaml
 - name: Verify docs match code
   run: |
-    truth-eval README.md --root-path . --confidence 0.8
-    truth-eval API.md --root-path ./src --confidence 0.8
+    truth-eval evaluate README.md --root-path . --confidence 0.8
+    truth-eval evaluate API.md --root-path ./src --confidence 0.8
 ```

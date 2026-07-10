@@ -3,7 +3,7 @@
 ## Basic Usage
 
 ```bash
-truth-eval <document> [options]
+truth-eval evaluate <document> [options]
 ```
 
 ## Options
@@ -23,19 +23,19 @@ truth-eval <document> [options]
 ### Basic
 
 ```bash
-truth-eval README.md
+truth-eval evaluate README.md
 ```
 
 ### With Filesystem Context
 
 ```bash
-truth-eval README.md --root-path .
+truth-eval evaluate README.md --root-path .
 ```
 
 ### Multi-Model
 
 ```bash
-truth-eval README.md \
+truth-eval evaluate README.md \
   --model gpt-4o \
   --model gpt-4o-mini \
   --model claude-sonnet-4-5
@@ -45,20 +45,20 @@ truth-eval README.md \
 
 ```bash
 export FIREWORKS_API_KEY="fw_..."
-truth-eval README.md --model accounts/fireworks/models/llama-v3-8b-instruct
+truth-eval evaluate README.md --model accounts/fireworks/models/llama-v3-8b-instruct
 ```
 
 ### Save Report
 
 ```bash
-truth-eval README.md --output report.json
-truth-eval README.md -o report.md
+truth-eval evaluate README.md --output report.json
+truth-eval evaluate README.md -o report.md
 ```
 
 ### Strict Verification
 
 ```bash
-truth-eval README.md --confidence 0.9
+truth-eval evaluate README.md --confidence 0.9
 ```
 
 ### Disable Web Search
@@ -66,13 +66,13 @@ truth-eval README.md --confidence 0.9
 Web search is enabled by default. To run without web search, use filesystem evidence only:
 
 ```bash
-truth-eval README.md --root-path . --mode internal
+truth-eval evaluate README.md --root-path . --mode internal
 ```
 
 ### Human Review
 
 ```bash
-truth-eval README.md --human-review
+truth-eval evaluate README.md --human-review
 ```
 
 Pauses for low-confidence claims:
@@ -98,7 +98,7 @@ Rich tables and panels:
 ### Markdown (Recommended)
 
 ```bash
-truth-eval README.md -o report.md
+truth-eval evaluate README.md -o report.md
 ```
 
 Generates a readable report with:
@@ -110,7 +110,7 @@ Generates a readable report with:
 ### JSON
 
 ```bash
-truth-eval README.md -o report.json
+truth-eval evaluate README.md -o report.json
 ```
 
 ```json
@@ -131,7 +131,7 @@ truth-eval README.md -o report.json
 ### HTML
 
 ```bash
-truth-eval README.md -o report.html
+truth-eval evaluate README.md -o report.html
 ```
 
 Self-contained HTML with styling.
@@ -154,10 +154,10 @@ TRUTH_CONFIDENCE_THRESHOLD=0.8
 TRUTH_ENABLE_WEB_SEARCH=false
 
 # Uses .env defaults
-truth-eval README.md
+truth-eval evaluate README.md
 
 # Overrides only the models
-truth-eval README.md --model gpt-4o
+truth-eval evaluate README.md --model gpt-4o
 ```
 
 ### Flag Precedence
@@ -172,10 +172,10 @@ Use `--flag` or `--no-flag`:
 
 ```bash
 # Explicitly disable web search (overrides .env)
-truth-eval README.md --no-web-search
+truth-eval evaluate README.md --no-web-search
 
 # Explicitly enable human review (overrides .env)
-truth-eval README.md --human-review
+truth-eval evaluate README.md --human-review
 ```
 
 ## Environment Variables
@@ -185,5 +185,5 @@ Override defaults inline:
 ```bash
 TRUTH_CLAIM_EXTRACTION_MODEL=gpt-4o-mini \
 TRUTH_CONFIDENCE_THRESHOLD=0.6 \
-truth-eval README.md
+truth-eval evaluate README.md
 ```

@@ -6,10 +6,10 @@ Multi-model truthfulness evaluation with filesystem-aware evidence gathering.
 
 Documentation drifts from reality. READMEs describe APIs that no longer exist, blog posts contain outdated version requirements, and AI-generated content includes plausible-sounding hallucinations. Manual fact-checking doesn't scale — a single README can contain dozens of verifiable claims about dependencies, APIs, configuration defaults, and behavioral guarantees.
 
-Truthfulness Evaluator automates this end-to-end. It extracts factual claims from your documents, gathers evidence from both web searches and your actual codebase, then uses multiple AI models to independently verify each claim through weighted consensus. The output is a graded report (A+ to F) with evidence citations, confidence scores, and detailed explanations.
+Truthfulness Evaluator automates this end-to-end. It extracts factual claims from your documents, gathers evidence from both web searches and your actual codebase, then uses multiple AI models to independently verify each claim through agreement-based multi-model consensus. The output is a graded report (A+ to F) with evidence citations, confidence scores, and detailed explanations.
 
 ```bash
-truth-eval README.md --root-path .
+truth-eval evaluate README.md --root-path .
 ```
 
 ```
@@ -65,7 +65,7 @@ graph TD
 1. **Claim Extraction** — LLM parses the document and extracts verifiable factual statements as structured Pydantic models, skipping opinions and predictions.
 2. **Evidence Gathering** — For each claim, the system searches multiple sources in parallel: web search for external facts, and a filesystem React agent for code-specific claims.
 3. **Multi-Model Verification** — Each claim is sent to multiple AI models independently. Models return structured verdicts (SUPPORTS, REFUTES, or NOT_ENOUGH_INFO) with confidence scores.
-4. **Consensus & Grading** — Model votes are aggregated through weighted consensus. The final report includes a letter grade (A+ to F), evidence citations, and detailed explanations.
+4. **Consensus & Grading** — Model verdicts are tallied by weighted agreement; the ensemble abstains to NOT_ENOUGH_INFO on ties or when agreement falls below the confidence threshold. The final report includes a letter grade (A+ to F), evidence citations, and detailed explanations.
 
 For a deeper look at the pipeline, see the [Architecture Overview](architecture/overview.md).
 
@@ -100,13 +100,13 @@ Summary: 3 supported, 1 refuted, 1 needs review
 ```bash
 pip install truthfulness-evaluator
 export OPENAI_API_KEY="sk-..."
-truth-eval document.md
+truth-eval evaluate document.md
 
 # Generate markdown report
-truth-eval document.md -o report.md
+truth-eval evaluate document.md -o report.md
 
 # Internal verification (check docs against code)
-truth-eval README.md --root-path . --mode both
+truth-eval evaluate README.md --root-path . --mode both
 ```
 
 ## Next Steps
