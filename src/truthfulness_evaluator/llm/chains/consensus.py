@@ -1,17 +1,28 @@
-"""Consensus chains for multi-model verification."""
+"""Consensus chain for multi-model verification.
+
+Design rationale (see ``llm_memory/research-multimodel-voting.md``): heterogeneous
+LLMs make correlated errors and their self-reported confidence is systematically
+overconfident and poorly calibrated. So both the commit/abstain decision and the
+reported confidence are driven by *inter-model agreement*, not by the models'
+own confidence scores. The ensemble abstains (``NOT_ENOUGH_INFO``) on a tie for
+the lead, or when weighted agreement for the leading verdict is below
+``confidence_threshold`` — trading yield for precision on the 3-way verdict.
+"""
 
 import asyncio
 from collections import Counter
 
 from ...core.logging_config import get_logger
-from ...models import Claim, Evidence, Verdict, VerificationResult
+from ...models import Claim, Evidence, VerificationResult
 from .verification import VerificationChain
 
 logger = get_logger()
 
+ABSTAIN = "NOT_ENOUGH_INFO"
+
 
 class ConsensusChain:
-    """Multi-model consensus with weighted voting."""
+    """Multi-model consensus via weighted, agreement-based voting."""
 
     def __init__(
         self,
@@ -21,161 +32,72 @@ class ConsensusChain:
     ):
         self.model_names = model_names
         self.weights = weights or {m: 1.0 / len(model_names) for m in model_names}
+        # Minimum weighted agreement for the leading verdict to be committed;
+        # below it (or on a tie) the ensemble abstains. With N equal-weight
+        # models a value of 0.7 effectively requires near-unanimity (e.g. 3
+        # models must all agree, since 2/3 = 0.67 < 0.7); lower it to accept
+        # simple majorities.
         self.confidence_threshold = confidence_threshold
-        self._chains = None
+        self._chains: list[VerificationChain] | None = None
 
     @property
     def chains(self) -> list[VerificationChain]:
-        """Lazy initialization of verification chains."""
+        """Lazy initialization of the per-model verification chains."""
         if self._chains is None:
             self._chains = [VerificationChain(m) for m in self.model_names]
         return self._chains
 
     async def verify(self, claim: Claim, evidence: list[Evidence]) -> VerificationResult:
-        """Verify claim using multi-model consensus."""
-        # Get votes from all models in parallel
-        results = await asyncio.gather(*[chain.verify(claim, evidence) for chain in self.chains])
-
-        # Collect votes and confidences
-        votes = {}
-        confidences = {}
-        explanations = []
-
-        for i, result in enumerate(results):
-            model = self.model_names[i]
-            votes[model] = result.verdict
-            confidences[model] = result.confidence
-            explanations.append(f"{model}: {result.verdict} (confidence: {result.confidence:.2f})")
-
-        # Weighted voting
-        weighted_votes = Counter()
-        for model, verdict in votes.items():
-            weight = self.weights.get(model, 1.0 / len(self.model_names))
-            weighted_votes[verdict] += weight
-
-        # Get winning verdict
-        final_verdict = weighted_votes.most_common(1)[0][0]
-
-        # Calculate overall confidence
-        avg_confidence = sum(confidences.values()) / len(confidences)
-
-        # If confidence too low, mark as NEI
-        if avg_confidence < self.confidence_threshold:
-            final_verdict = "NOT_ENOUGH_INFO"
-
-        # Debug: show all votes
-        vote_str = ", ".join([f"{m}: {v}" for m, v in votes.items()])
-        logger.debug(f"Model votes: {vote_str}")
-
-        # Combine evidence from all results
-        all_evidence = []
-        for r in results:
-            all_evidence.extend(r.evidence)
-
-        return VerificationResult(
-            claim_id=claim.id,
-            verdict=final_verdict,
-            confidence=avg_confidence,
-            evidence=all_evidence[:5],  # Deduplicate and limit
-            explanation="\n".join([f"Consensus: {final_verdict}", "Model votes:", *explanations]),
-            model_votes=votes,
-        )
-
-
-class ICEConsensusChain:
-    """Iterative Consensus Ensemble - models critique each other."""
-
-    def __init__(
-        self, model_names: list[str], max_rounds: int = 3, confidence_threshold: float = 0.7
-    ):
-        self.model_names = model_names
-        self.max_rounds = max_rounds
-        self.confidence_threshold = confidence_threshold
-        self._chains = None
-
-    @property
-    def chains(self) -> list[VerificationChain]:
-        """Lazy initialization of verification chains."""
-        if self._chains is None:
-            self._chains = [VerificationChain(m) for m in self.model_names]
-        return self._chains
-
-    async def verify(self, claim: Claim, evidence: list[Evidence]) -> VerificationResult:
-        """Verify claim using ICE (Iterative Consensus Ensemble)."""
-
-        # Round 1: Initial votes
+        """Verify a claim by polling every model and aggregating by agreement."""
         results = await asyncio.gather(*[chain.verify(claim, evidence) for chain in self.chains])
 
         votes = {self.model_names[i]: r.verdict for i, r in enumerate(results)}
+        self_reported = {self.model_names[i]: r.confidence for i, r in enumerate(results)}
 
-        # Rounds 2-N: Critique and revise
-        for round_num in range(2, self.max_rounds + 1):
-            if self._consensus_reached(votes):
-                break
+        # Weighted tally of verdicts.
+        tally: Counter = Counter()
+        for model, verdict in votes.items():
+            tally[verdict] += self.weights.get(model, 1.0 / len(self.model_names))
 
-            # Models critique each other's reasoning
-            critiques = await self._gather_critiques(claim, evidence, votes, round_num)
+        total_weight = sum(tally.values()) or 1.0
+        ranked = tally.most_common()
+        leading_verdict, leading_weight = ranked[0]
+        agreement = leading_weight / total_weight
 
-            # Revise votes based on critiques
-            new_results = await asyncio.gather(
-                *[
-                    self._revise_vote(chain, claim, evidence, votes, critiques, round_num)
-                    for chain in self.chains
-                ]
-            )
+        # A shared top weight is unresolved agreement -> abstain.
+        tie = len(ranked) > 1 and ranked[1][1] == leading_weight
+        abstained = tie or agreement < self.confidence_threshold
+        final_verdict = ABSTAIN if abstained else leading_verdict
 
-            votes = {self.model_names[i]: r.verdict for i, r in enumerate(new_results)}
+        # Confidence reflects consensus strength, not the models' unreliable
+        # self-reported scores.
+        confidence = round(agreement, 4)
 
-        # Final aggregation
-        return self._aggregate_results(claim, votes, results, evidence)
+        all_evidence: list[Evidence] = []
+        for r in results:
+            all_evidence.extend(r.evidence)
 
-    def _consensus_reached(self, votes: dict[str, Verdict]) -> bool:
-        """Check if all models agree."""
-        return len(set(votes.values())) == 1
+        vote_lines = [
+            f"{m}: {votes[m]} (self-reported {self_reported[m]:.0%})" for m in self.model_names
+        ]
+        explanation_parts = [
+            f"Consensus: {final_verdict} ({agreement:.0%} weighted agreement)",
+            "Model votes:",
+            *vote_lines,
+        ]
+        if final_verdict == ABSTAIN and leading_verdict != ABSTAIN:
+            reason = "tie" if tie else f"agreement below {self.confidence_threshold:.0%} threshold"
+            explanation_parts.append(f"(Abstained: {reason}.)")
 
-    async def _gather_critiques(
-        self, claim: Claim, evidence: list[Evidence], votes: dict[str, Verdict], round_num: int
-    ) -> dict[str, str]:
-        """Gather critiques from each model about others' reasoning."""
-        # Simplified - in full implementation, each model critiques others
-        return {model: f"Round {round_num} critique" for model in self.model_names}
-
-    async def _revise_vote(
-        self,
-        chain: VerificationChain,
-        claim: Claim,
-        evidence: list[Evidence],
-        current_votes: dict[str, Verdict],
-        critiques: dict[str, str],
-        round_num: int,
-    ) -> VerificationResult:
-        """Revise vote based on critiques."""
-        # For now, just re-verify (full implementation would incorporate critiques)
-        return await chain.verify(claim, evidence)
-
-    def _aggregate_results(
-        self,
-        claim: Claim,
-        votes: dict[str, Verdict],
-        results: list[VerificationResult],
-        evidence: list[Evidence],
-    ) -> VerificationResult:
-        """Aggregate final results."""
-        # Simple majority vote
-        vote_counts = Counter(votes.values())
-        final_verdict = vote_counts.most_common(1)[0][0]
-
-        # Average confidence
-        avg_confidence = sum(r.confidence for r in results) / len(results)
-
-        if avg_confidence < self.confidence_threshold:
-            final_verdict = "NOT_ENOUGH_INFO"
+        logger.debug(
+            "Consensus %s at %.0f%% agreement; votes=%s", final_verdict, agreement * 100, votes
+        )
 
         return VerificationResult(
             claim_id=claim.id,
             verdict=final_verdict,
-            confidence=avg_confidence,
-            evidence=evidence,
-            explanation=f"ICE Consensus after up to {self.max_rounds} rounds",
+            confidence=confidence,
+            evidence=all_evidence[:5],
+            explanation="\n".join(explanation_parts),
             model_votes=votes,
         )

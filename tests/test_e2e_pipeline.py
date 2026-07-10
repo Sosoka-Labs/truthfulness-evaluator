@@ -89,10 +89,9 @@ class TestExternalGraphWithFakeLLM:
                 "enable_filesystem_search": False,
                 "verification_models": ["fake"],
                 "claim_extraction_model": "fake",
-                # With no evidence gathered, VerificationChain caps confidence at
-                # 0.3; keep the consensus threshold below that so the SUPPORTS
-                # verdict propagates through the full graph.
-                "confidence_threshold": 0.2,
+                # Single model -> 100% agreement, so any threshold commits; the
+                # SUPPORTS verdict propagates through the full graph.
+                "confidence_threshold": 0.5,
             },
             "final_report": None,
         }
