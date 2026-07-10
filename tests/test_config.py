@@ -1,6 +1,28 @@
 """Tests for truthfulness_evaluator.config module."""
 
+import os
+
+import pytest
 from truthfulness_evaluator.core.config import EvaluatorConfig, get_config
+
+
+@pytest.fixture(autouse=True)
+def _isolate_config_env(monkeypatch, tmp_path):
+    """Keep config tests hermetic against a developer's real .env / shell keys.
+
+    Importing the package auto-loads .env into the environment (see
+    core.config), and pydantic-settings also reads the .env *file* relative to
+    the working directory. Both would otherwise leak a developer's real config
+    (e.g. Fireworks models, provider keys) into the default-value assertions.
+    Clearing the env vars and running from an empty temp dir isolates both.
+    Tests that exercise env fallback set the vars they need explicitly.
+    """
+    for var in list(os.environ):
+        if var.startswith("TRUTH_"):
+            monkeypatch.delenv(var, raising=False)
+    for var in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "FIREWORKS_API_KEY"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.chdir(tmp_path)
 
 
 class TestEvaluatorConfig:
@@ -8,7 +30,9 @@ class TestEvaluatorConfig:
 
     def test_config_default_values(self):
         """Test that config has correct default values."""
-        config = EvaluatorConfig()
+        # _env_file=None isolates from a developer's real .env (which may point
+        # verification_models at other providers); this asserts class defaults.
+        config = EvaluatorConfig(_env_file=None)
 
         # Model configuration
         assert config.claim_extraction_model == "gpt-4o-mini"
@@ -20,9 +44,6 @@ class TestEvaluatorConfig:
         assert config.enable_web_search is True
         assert config.enable_filesystem_search is True
         assert config.max_evidence_items == 5
-
-        # ICE configuration
-        assert config.ice_max_rounds == 3
 
         # Output configuration
         assert config.output_format == "json"
@@ -76,11 +97,6 @@ class TestEvaluatorConfig:
         """Test consensus_method can be set to weighted."""
         config = EvaluatorConfig(consensus_method="weighted")
         assert config.consensus_method == "weighted"
-
-    def test_config_consensus_method_ice(self):
-        """Test consensus_method can be set to ice."""
-        config = EvaluatorConfig(consensus_method="ice")
-        assert config.consensus_method == "ice"
 
     def test_config_output_format_json(self):
         """Test output_format can be set to json."""
@@ -176,13 +192,13 @@ class TestEvaluatorConfig:
 
         assert config.verification_models == ["model-1", "model-2", "model-3"]
 
-    def test_config_env_var_override_ice_max_rounds(self, monkeypatch):
+    def test_config_env_var_override_max_evidence_items(self, monkeypatch):
         """Test that TRUTH_ prefixed env vars work for integer values."""
-        monkeypatch.setenv("TRUTH_ICE_MAX_ROUNDS", "5")
+        monkeypatch.setenv("TRUTH_MAX_EVIDENCE_ITEMS", "9")
 
         config = EvaluatorConfig()
 
-        assert config.ice_max_rounds == 5
+        assert config.max_evidence_items == 9
 
 
 class TestGetConfig:

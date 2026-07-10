@@ -73,6 +73,16 @@ poetry run mypy src/
 
 The `main` branch contains stable releases. Active development happens on `develop`.
 
+## Releases
+
+When `develop` is ready for release, a maintainer will:
+1. Update `CHANGELOG.md` with the release date
+2. PR `develop` → `main`
+3. Tag `vX.Y.Z` on the merge commit
+4. Fast-forward `develop` to `main` so both branches align
+
+No release branches are used.
+
 ## Commit Messages
 
 Follow conventional commit format for clarity and automated changelog generation:

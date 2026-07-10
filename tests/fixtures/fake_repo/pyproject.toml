@@ -1,0 +1,6 @@
+[project]
+name = "fake-calculator"
+version = "0.3.0"
+description = "A tiny fixture project used as internal-verification ground truth."
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.0"]

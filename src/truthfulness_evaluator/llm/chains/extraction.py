@@ -2,6 +2,7 @@
 
 import asyncio
 import re
+from dataclasses import replace
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -14,11 +15,25 @@ except ImportError:
     REFCHECKER_AVAILABLE = False
 
 from ...core.logging_config import get_logger
+from ...core.segmentation import Sentence, segment_sentences
 from ...models import Claim
 from ..factory import create_chat_model
-from ..prompts.extraction import CLAIM_EXTRACTION_PROMPT, TRIPLET_EXTRACTION_PROMPT
+from ..prompts.extraction import (
+    CLAIM_EXTRACTION_PROMPT,
+    SENTENCE_SELECTION_PROMPT,
+    TRIPLET_EXTRACTION_PROMPT,
+)
 
 logger = get_logger()
+
+_VALID_CLAIM_TYPES = {"explicit", "implicit", "inferred"}
+# Number of neighbouring sentences included on each side as claim context.
+_CONTEXT_WINDOW = 1
+
+# Fenced code blocks (```...``` / ~~~...~~~, optional language tag) and inline
+# code spans. These hold example/illustrative content, not real project claims.
+_FENCED_BLOCK = re.compile(r"(^|\n)(```|~~~)[^\n]*\n.*?\n\2(\s*\n|$)", re.DOTALL)
+_INLINE_CODE = re.compile(r"`[^`]+`")
 
 
 def strip_example_blocks(text: str) -> str:
@@ -38,16 +53,27 @@ def strip_example_blocks(text: str) -> str:
     Returns:
         Document text with example blocks replaced by whitespace.
     """
-    # Fenced code blocks: ```...``` or ~~~...~~~ (with optional language tag)
-    text = re.sub(
-        r"(^|\n)(```|~~~)[^\n]*\n.*?\n\2(\s*\n|$)",
-        r"\1\n",
-        text,
-        flags=re.DOTALL,
-    )
-    # Inline code spans
-    text = re.sub(r"`[^`]+`", "", text)
+    text = _FENCED_BLOCK.sub(r"\1\n", text)
+    text = _INLINE_CODE.sub("", text)
     return text
+
+
+def example_block_spans(text: str) -> list[tuple[int, int]]:
+    """Return character ranges of example blocks in ``text``.
+
+    Unlike :func:`strip_example_blocks`, this reports spans against the original
+    text so callers can exclude claims that fall inside example content without
+    disturbing the source offsets used for verbatim slicing.
+
+    Args:
+        text: Raw document text.
+
+    Returns:
+        ``(start, end)`` half-open ranges for fenced blocks and inline code.
+    """
+    spans = [(m.start(), m.end()) for m in _FENCED_BLOCK.finditer(text)]
+    spans += [(m.start(), m.end()) for m in _INLINE_CODE.finditer(text)]
+    return spans
 
 
 # Structured output models
@@ -77,6 +103,24 @@ class TripletExtractionOutput(BaseModel):
     """Output structure for triplet extraction."""
 
     triplets: List[KnowledgeTriplet] = Field(description="List of knowledge triplets")
+
+
+class SelectedSentence(BaseModel):
+    """A sentence selected as claim-bearing, referenced by index."""
+
+    index: int = Field(description="Index of the claim-bearing sentence")
+    claim_type: str = Field(description="Type: explicit, implicit, or inferred")
+    normalized_claim: Optional[str] = Field(
+        None, description="Optional atomic restatement; never replaces the verbatim sentence"
+    )
+
+
+class SentenceSelectionOutput(BaseModel):
+    """Output structure for sentence-index claim selection."""
+
+    selections: List[SelectedSentence] = Field(
+        description="Sentences selected as claim-bearing, referenced by index"
+    )
 
 
 class ClaimExtractionChain:
@@ -266,3 +310,116 @@ class TripletExtractionChain:
         except Exception as e:
             logger.warning(f"Triplet extraction failed: {e}")
             return []
+
+
+class SentenceSelectionExtractionChain:
+    """Extract claims by having the LLM select sentence indices, not rewrite text.
+
+    The document is deterministically segmented into numbered sentences; the model
+    returns the indices of claim-bearing sentences. Claim text is then sliced from
+    the source by offset, so the quoted wording can never diverge from the document
+    (misquote-proof by construction). ``Claim.source_span`` is populated accordingly.
+    """
+
+    def __init__(self, model: str = "gpt-4o-mini"):
+        self.model = model
+        self._llm = None
+
+    @property
+    def llm(self):
+        """Lazy initialization of LLM with structured output."""
+        if self._llm is None:
+            base_llm = create_chat_model(self.model, temperature=0)
+            self._llm = base_llm.with_structured_output(SentenceSelectionOutput)
+        return self._llm
+
+    async def extract(
+        self, document: str, source_path: str, max_claims: Optional[int] = None
+    ) -> list[Claim]:
+        """Extract claims as verbatim sentences chosen by index."""
+        # Segment the ORIGINAL document so every span indexes source_path exactly,
+        # then drop sentences that fall inside example blocks (fenced / inline
+        # code) so illustrative claims can never be selected.
+        sentences = self._selectable_sentences(document)
+
+        if not sentences:
+            return []
+
+        enumerated = "\n".join(f"[{s.index}] {s.text}" for s in sentences)
+        chain = SENTENCE_SELECTION_PROMPT | self.llm
+
+        try:
+            result: SentenceSelectionOutput = await chain.ainvoke({"sentences": enumerated})
+        except Exception as e:
+            logger.warning(f"Sentence-selection extraction failed: {e}")
+            return []
+
+        return self._build_claims(result, sentences, source_path, max_claims)
+
+    @staticmethod
+    def _selectable_sentences(document: str) -> list[Sentence]:
+        """Segment the document and exclude sentences inside example blocks.
+
+        Spans are preserved against the original document; excluded sentences are
+        re-indexed contiguously so the enumerated list handed to the LLM has no
+        gaps.
+        """
+        excluded = example_block_spans(document)
+
+        def in_example(sentence: Sentence) -> bool:
+            return any(sentence.start < end and start < sentence.end for start, end in excluded)
+
+        kept = [s for s in segment_sentences(document) if not in_example(s)]
+        return [replace(s, index=i) for i, s in enumerate(kept)]
+
+    def _build_claims(
+        self,
+        result: SentenceSelectionOutput,
+        sentences: list[Sentence],
+        source_path: str,
+        max_claims: Optional[int],
+    ) -> list[Claim]:
+        """Convert validated selections into span-grounded Claim objects."""
+        claims: list[Claim] = []
+        seen: set[int] = set()
+
+        for selection in result.selections:
+            if max_claims and len(claims) >= max_claims:
+                break
+
+            idx = selection.index
+            if not 0 <= idx < len(sentences):
+                logger.warning(
+                    f"Dropping out-of-range sentence index {idx} "
+                    f"(document has {len(sentences)} sentences)"
+                )
+                continue
+            if idx in seen:
+                continue
+            seen.add(idx)
+
+            sentence = sentences[idx]
+            claim_type = (
+                selection.claim_type if selection.claim_type in _VALID_CLAIM_TYPES else "explicit"
+            )
+            claims.append(
+                Claim(
+                    id=f"claim_{len(claims):03d}",
+                    text=sentence.text,
+                    source_document=source_path,
+                    source_span=(sentence.start, sentence.end),
+                    context=self._context_for(sentences, idx),
+                    normalized_text=selection.normalized_claim,
+                    claim_type=claim_type,
+                )
+            )
+
+        return claims
+
+    @staticmethod
+    def _context_for(sentences: list[Sentence], idx: int) -> Optional[str]:
+        """Join a small window of neighbouring sentences as context."""
+        lo = max(0, idx - _CONTEXT_WINDOW)
+        hi = min(len(sentences), idx + _CONTEXT_WINDOW + 1)
+        neighbours = [sentences[i].text for i in range(lo, hi) if i != idx]
+        return " ".join(neighbours) if neighbours else None

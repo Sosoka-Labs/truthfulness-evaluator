@@ -1,0 +1,135 @@
+# AI Council Configuration for truthfulness-evaluator
+# Managed by Devin / Sosoka Labs
+# Python project: skip Python build artifacts, keep source and YAML/CI reviewed.
+
+version: "1"
+
+# -- Review Settings ----------------------------------------------------------
+review_depth: standard
+max_files: 75
+max_lines: 4000
+max_diff_size: 150000
+comment_on_forks: false
+skip_drafts: true
+skip_labels:
+  - "skip-ai-review"
+  - "wip"
+
+skip_patterns:
+  - "package-lock.json"
+  - "yarn.lock"
+  - "pnpm-lock.yaml"
+  - "bun.lockb"
+  - "poetry.lock"
+  - "Cargo.lock"
+  - "Gemfile.lock"
+  - "uv.lock"
+  - "dist/"
+  - "build/"
+  - "node_modules/"
+  - "__pycache__/"
+  - "*.pyc"
+  - "*.pyo"
+  - "*.jpg"
+  - "*.png"
+  - "*.gif"
+  - "*.ico"
+  - "*.svg"
+  - "*.woff"
+  - "*.woff2"
+  - "*.ttf"
+  - "*.eot"
+  - "*.mp4"
+  - "*.webm"
+  - "*.mp3"
+  - "*.wav"
+  - ".coverage"
+  - "coverage.json"
+  - "htmlcov/"
+  - ".idea/"
+  - ".vscode/"
+  - ".DS_Store"
+  - ".eggs/"
+  - "*.egg-info/"
+  - ".tox/"
+  - ".venv/"
+  - "venv/"
+  - "*.snap"
+
+# -- Cost & Timeout Control ---------------------------------------------------
+budget_usd: 8.00
+agent_timeout_seconds: 300
+total_timeout_seconds: 900
+rate_limit_threshold: 50
+debug: false
+
+# -- Agent Configuration ------------------------------------------------------
+agents:
+  router:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1-mini
+    temperature: 0.1
+    max_tokens: 2000
+
+  security:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1
+    temperature: 0.2
+    max_tokens: 16000
+
+  quality:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1
+    temperature: 0.3
+    max_tokens: 16000
+
+  architecture:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1
+    temperature: 0.3
+    max_tokens: 16000
+
+  performance:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1
+    temperature: 0.3
+    max_tokens: 16000
+
+  documentation:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1
+    temperature: 0.3
+    max_tokens: 16000
+
+  devops:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1
+    temperature: 0.2
+    max_tokens: 16000
+
+  synthesis:
+    enabled: true
+    model: openai
+    model_name: openai/gpt-4.1-mini
+    temperature: 0.2
+    max_tokens: 16000
+
+# -- Skills -------------------------------------------------------------------
+skills_path: .ai-council/skills
+default_agent_skills: null
+
+# -- LLM Provider Settings ----------------------------------------------------
+providers:
+  openai:
+    api_key: null
+  anthropic:
+    api_key: null
+  fireworks:
+    api_key: null

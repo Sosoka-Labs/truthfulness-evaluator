@@ -30,6 +30,9 @@ from truthfulness_evaluator.models import (
 )
 
 # Adapter imports
+from truthfulness_evaluator.strategies.extractors.sentence_selection import (
+    SentenceSelectionExtractor,
+)
 from truthfulness_evaluator.strategies.extractors.simple import SimpleExtractor
 from truthfulness_evaluator.strategies.extractors.triplet import TripletExtractor
 from truthfulness_evaluator.strategies.formatters.html import HtmlFormatter
@@ -112,6 +115,7 @@ def sample_report(sample_claims, sample_verifications):
     [
         (SimpleExtractor, ClaimExtractor, {}),
         (TripletExtractor, ClaimExtractor, {}),
+        (SentenceSelectionExtractor, ClaimExtractor, {}),
         (WebSearchGatherer, EvidenceGatherer, {}),
         (FilesystemGatherer, EvidenceGatherer, {}),
         (CompositeGatherer, EvidenceGatherer, {"gatherers": []}),
@@ -190,6 +194,35 @@ async def test_triplet_extractor_forwarding():
             document="Test document content",
             source_path="test.md",
             max_claims=10,
+        )
+        assert result == mock_claims
+
+
+@pytest.mark.asyncio
+async def test_sentence_selection_extractor_forwarding():
+    """Test SentenceSelectionExtractor forwards arguments correctly to its chain."""
+    mock_chain = AsyncMock()
+    mock_claims = [
+        Claim(id="c1", text="Test claim", source_document="test.md", source_span=(0, 10)),
+    ]
+    mock_chain.extract.return_value = mock_claims
+
+    with patch(
+        "truthfulness_evaluator.strategies.extractors.sentence_selection."
+        "SentenceSelectionExtractionChain",
+        return_value=mock_chain,
+    ):
+        extractor = SentenceSelectionExtractor()
+        result = await extractor.extract(
+            document="Test document content",
+            source_path="test.md",
+            max_claims=7,
+        )
+
+        mock_chain.extract.assert_called_once_with(
+            document="Test document content",
+            source_path="test.md",
+            max_claims=7,
         )
         assert result == mock_claims
 
@@ -710,7 +743,7 @@ def test_register_builtin_presets_populates_registry(clean_registry):
     available = WorkflowRegistry.list_workflows()
 
     # Check for expected presets (based on presets.py implementation)
-    expected_presets = ["external", "full", "quick"]
+    expected_presets = ["external", "full", "quick", "precise"]
     for preset in expected_presets:
         assert preset in available
 
@@ -752,3 +785,13 @@ def test_quick_preset_has_correct_adapters(clean_registry):
     assert isinstance(config.verifier, SingleModelVerifier)
     assert len(config.formatters) == 1
     assert isinstance(config.formatters[0], JsonFormatter)
+
+
+def test_precise_preset_uses_span_grounded_extractor(clean_registry):
+    """Test 'precise' preset wires in the span-grounded extractor."""
+    register_builtin_presets()
+    config = WorkflowRegistry.get("precise")
+    assert isinstance(config.extractor, SentenceSelectionExtractor)
+    assert len(config.gatherers) == 1
+    assert isinstance(config.gatherers[0], CompositeGatherer)
+    assert isinstance(config.verifier, ConsensusVerifier)

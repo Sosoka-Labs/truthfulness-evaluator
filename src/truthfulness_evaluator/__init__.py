@@ -20,7 +20,11 @@ from .llm.workflows.presets import register_builtin_presets
 from .models import Claim, TruthfulnessReport, VerificationResult
 
 # Strategy adapters - Extractors
-from .strategies.extractors import SimpleExtractor, TripletExtractor
+from .strategies.extractors import (
+    SentenceSelectionExtractor,
+    SimpleExtractor,
+    TripletExtractor,
+)
 
 # Strategy adapters - Formatters
 from .strategies.formatters import HtmlFormatter, JsonFormatter, MarkdownFormatter
@@ -47,6 +51,7 @@ __all__ = [
     # Extractors
     "SimpleExtractor",
     "TripletExtractor",
+    "SentenceSelectionExtractor",
     # Gatherers
     "CompositeGatherer",
     "FilesystemGatherer",
