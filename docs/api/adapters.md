@@ -69,8 +69,10 @@ Claim verification strategies implement the `ClaimVerifier` protocol.
       show_root_heading: true
       show_source: true
 
-!!! note "ICE Consensus Status"
-    The iterative critique/revise rounds for ICE (Iterative Consensus Ensemble) are currently stubbed. The implementation uses weighted voting but does not yet perform full debate-style refinement.
+`ConsensusVerifier` wraps `ConsensusChain` (see [Chains API Reference](./chains.md)),
+which polls every configured model and commits the leading verdict only when weighted
+agreement across models meets `confidence_threshold` (and there's no tie); otherwise it
+abstains to `NOT_ENOUGH_INFO`.
 
 ### InternalVerifier
 

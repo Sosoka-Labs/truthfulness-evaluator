@@ -91,7 +91,7 @@ class ClaimVerifier(Protocol):
         ...
 ```
 
-Different implementations use different judgment methods: single LLM, multi-model consensus with weighted voting, ICE (Iterative Consensus Ensemble), or deterministic rule-based verification.
+Different implementations use different judgment methods: single LLM, multi-model consensus with agreement-based weighted voting, or deterministic rule-based verification.
 
 ### ReportFormatter
 
@@ -552,9 +552,6 @@ for claim in claims:
 - Use `gpt-4o-mini` for extraction, reserve `gpt-4o` for verification
 - Enable caching in gatherers for repeated queries
 - Set `max_claims` to process large documents incrementally
-
-!!! warning "ICE Consensus Limitations"
-    The ICE (Iterative Consensus Ensemble) critique/revise rounds are currently stubbed in `ConsensusVerifier`. Full implementation is planned for a future release.
 
 ## Future Enhancements
 

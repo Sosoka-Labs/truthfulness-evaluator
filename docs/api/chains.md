@@ -79,22 +79,10 @@ consensus = ConsensusChain(
 result = await consensus.verify(claim, evidence)
 ```
 
-Weighted voting. Models vote, weights applied, majority wins.
-
-### ICEConsensusChain
-
-```python
-from truthfulness_evaluator.llm.chains.consensus import ICEConsensusChain
-
-ice = ICEConsensusChain(
-    model_names=["gpt-4o", "gpt-4o-mini"],
-    max_rounds=3
-)
-
-result = await ice.verify(claim, evidence)
-```
-
-Iterative Consensus Ensemble. Models critique each other over multiple rounds.
+Each model votes; votes are tallied with the given weights. The leading verdict is
+committed only if it isn't tied for the lead and its weighted agreement fraction meets
+`confidence_threshold` — otherwise the result is `NOT_ENOUGH_INFO`. Reported confidence is
+that agreement fraction, not an average of the models' self-reported scores.
 
 ## Evidence Processing
 
@@ -174,11 +162,6 @@ result = await chain.ainvoke({"claim": "Python was created in 1991"})
 ### Consensus
 
 ::: truthfulness_evaluator.llm.chains.consensus.ConsensusChain
-    options:
-      show_root_heading: true
-      show_source: true
-
-::: truthfulness_evaluator.llm.chains.consensus.ICEConsensusChain
     options:
       show_root_heading: true
       show_source: true
